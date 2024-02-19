@@ -93,5 +93,5 @@ def equivalent_properties(kg):
 
 def get_graph_to_visualize():
     get_all_classes(knowledge_graph)
-    # get_class_restrictions(knowledge_graph)
+    get_class_restrictions(knowledge_graph)
     return graph_to_visualize
