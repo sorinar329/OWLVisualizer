@@ -91,15 +91,13 @@ def get_graph_data_json():
         return jsonify({'nodes': nodes, 'edges': edges})
 
 
-knowledge_graph = Graph()
-knowledge_graph.parse("C:\Dev\OWLVisualizer\data\mixing_01_2024.owl")
 
 @app.route('/get_graph_data_rdf')
 def get_graph_data_rdf():
-    rdf_graph = src.graph.get_all_classes(knowledge_graph)
-    print(rdf_graph[0])
-    print(rdf_graph[1])
-    return jsonify({'nodes': rdf_graph[0]})
+    graph_visualize = src.graph.get_graph_to_visualize()
+    print(graph_visualize.get("nodes"))
+    print(graph_visualize.get("edges"))
+    return jsonify({'nodes': graph_visualize.get("nodes"), 'edges': graph_visualize.get("edges")})
 
 
 if __name__ == '__main__':

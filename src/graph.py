@@ -1,7 +1,7 @@
 import rdflib
 from rdflib import Graph, OWL, RDFS, RDF
 from rdflib.term import BNode
-
+import random
 knowledge_graph = Graph()
 knowledge_graph.parse("data/mixing.owl")
 
@@ -36,12 +36,14 @@ def extract_collection_members(triple, parent_node, count):
         if isinstance(node, BNode) and is_restriction(node):
             return
             # extract_nested_restrictions(node)
-        graph_to_visualize.get("nodes").append({'id': str(count), 'label': str(node)})
-        graph_to_visualize.get("edges").append({'from': str(node), 'to': str(parent_node), 'label': str(edge)})
+        node_id = random.randint(0, 10000)
+        graph_to_visualize.get("nodes").append({'id': str(node_id), 'label': str(node)})
+
+        graph_to_visualize.get("edges").append({'from': str(node_id), 'to': str(parent_node), 'label': str(edge).split('#')[-1]})
         count += 1
     else:
         for list_rest_triple in knowledge_graph.triples((el, None, None)):
-            extract_collection_members(list_rest_triple, parent_node)
+            extract_collection_members(list_rest_triple, parent_node,count)
 
 
 def extract_nested_restrictions(bnode: BNode):
