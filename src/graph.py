@@ -18,10 +18,12 @@ def get_all_classes(kg: Graph):
             continue
         nodes.add(str(subclass))
         nodes.add(str(superclass))
-        graph_to_visualize.get("edges").append({'from': str(subclass), 'to': str(superclass)})
+        #graph_to_visualize.get("edges").append({'from': str(subclass), 'to': str(superclass), 'label': 'subClassOf'})
     for node in nodes:
         label = node.split("#")[-1]
         graph_to_visualize.get("nodes").append({'node_id': str(node), 'label': label})
+    graph_to_visualize.get("edges").append({'from': 'http://www.ease-crc.org/ont/SOMA.owl#Bowl',
+                                            'to': 'http://www.ease-crc.org/ont/SOMA.owl#Crockery'})
 
 
 def extract_collection_members(triple, parent_node):
