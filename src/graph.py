@@ -36,7 +36,7 @@ def extract_collection_members(triple, parent_node, count):
         if isinstance(node, BNode) and is_restriction(node):
             return
             # extract_nested_restrictions(node)
-        graph_to_visualize.get("nodes").append({'id': count, 'label': str(node)})
+        graph_to_visualize.get("nodes").append({'id': str(count), 'label': str(node)})
         graph_to_visualize.get("edges").append({'from': str(node), 'to': str(parent_node), 'label': str(edge)})
         count += 1
     else:
@@ -84,7 +84,7 @@ def get_class_restrictions(knowledge_graph):
 
                     graph_to_visualize.get("nodes").append({'id': parent_node, 'label': parent_node})
                     graph_to_visualize.get("edges").append({'from': str(x), 'to': str(parent_node), 'label': str(parent_node)})
-                    extract_collection_members((None, p, bnode_or_value), parent_node)
+                    extract_collection_members((None, p, bnode_or_value), parent_node, i)
                     i += 1
 
 
