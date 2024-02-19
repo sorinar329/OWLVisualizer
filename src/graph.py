@@ -24,8 +24,7 @@ def get_all_classes(kg: Graph):
         graph_to_visualize.get("nodes").append({'id': str(node), 'label': label})
 
 
-def extract_collection_members(triple, parent_node):
-    i = 0
+def extract_collection_members(triple, parent_node, count):
     _, p, el = triple
     if p == RDF.first:
         edge, node = None, None
@@ -37,9 +36,9 @@ def extract_collection_members(triple, parent_node):
         if isinstance(node, BNode) and is_restriction(node):
             return
             # extract_nested_restrictions(node)
-        graph_to_visualize.get("nodes").append({'id': i, 'label': str(node)})
+        graph_to_visualize.get("nodes").append({'id': count, 'label': str(node)})
         graph_to_visualize.get("edges").append({'from': str(node), 'to': str(parent_node), 'label': str(edge)})
-
+        count += 1
     else:
         for list_rest_triple in knowledge_graph.triples((el, None, None)):
             extract_collection_members(list_rest_triple, parent_node)
@@ -82,7 +81,11 @@ def get_class_restrictions(knowledge_graph):
             else:
                 if collection_type.get(p) is not None:
                     parent_node = f"Intersection-{i}"
+
+                    graph_to_visualize.get("nodes").append({'id': parent_node, 'label': parent_node})
+                    graph_to_visualize.get("edges").append({'from': str(x), 'to': str(parent_node), 'label': str(parent_node)})
                     extract_collection_members((None, p, bnode_or_value), parent_node)
+                    i += 1
 
 
 def equivalent_properties(kg):
