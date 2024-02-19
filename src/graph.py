@@ -16,11 +16,12 @@ def get_all_classes(kg: Graph):
     for subclass, superclass in kg.subject_objects(RDFS.subClassOf):
         if isinstance(superclass, BNode):
             continue
-        nodes.add(subclass)
-        nodes.add(superclass)
+        nodes.add(str(subclass))
+        nodes.add(str(superclass))
         graph_to_visualize.get("edges").append({'from': str(subclass), 'to': str(superclass)})
     for node in nodes:
-        graph_to_visualize.get("nodes").append({'node_id': str(node)})
+        label = node.split("#")[-1]
+        graph_to_visualize.get("nodes").append({'node_id': str(node), 'label': label})
 
 
 def extract_collection_members(triple, parent_node):
