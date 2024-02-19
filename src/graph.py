@@ -12,12 +12,15 @@ collection_type = {OWL.intersectionOf: 'Intersection', OWL.unionOf: 'Union'}
 
 
 def get_all_classes(kg: Graph):
+    nodes = set()
     for subclass, superclass in kg.subject_objects(RDFS.subClassOf):
         if isinstance(superclass, BNode):
             continue
+        nodes.add(subclass)
+        nodes.add(superclass)
         graph_to_visualize.get("edges").append({'from': str(subclass), 'to': str(superclass)})
-        graph_to_visualize.get("nodes").append({'node_id': str(superclass)})
-        graph_to_visualize.get("nodes").append({'node_id': str(subclass)})
+    for node in nodes:
+        graph_to_visualize.get("nodes").append({'node_id': str(node)})
 
 
 def extract_collection_members(triple, parent_node):
@@ -86,5 +89,5 @@ def equivalent_properties(kg):
 
 def get_graph_to_visualize():
     get_all_classes(knowledge_graph)
-    get_class_restrictions(knowledge_graph)
+    #get_class_restrictions(knowledge_graph)
     return graph_to_visualize
