@@ -18,15 +18,14 @@ def get_all_classes(kg: Graph):
             continue
         nodes.add(str(subclass))
         nodes.add(str(superclass))
-        #graph_to_visualize.get("edges").append({'from': str(subclass), 'to': str(superclass), 'label': 'subClassOf'})
+        graph_to_visualize.get("edges").append({'from': str(subclass), 'to': str(superclass), 'label': 'subClassOf'})
     for node in nodes:
         label = node.split("#")[-1]
-        graph_to_visualize.get("nodes").append({'node_id': str(node), 'label': label})
-    graph_to_visualize.get("edges").append({'from': 'http://www.ease-crc.org/ont/SOMA.owl#Bowl',
-                                            'to': 'http://www.ease-crc.org/ont/SOMA.owl#Crockery'})
+        graph_to_visualize.get("nodes").append({'id': str(node), 'label': label})
 
 
 def extract_collection_members(triple, parent_node):
+    i = 0
     _, p, el = triple
     if p == RDF.first:
         edge, node = None, None
@@ -38,7 +37,7 @@ def extract_collection_members(triple, parent_node):
         if isinstance(node, BNode) and is_restriction(node):
             return
             # extract_nested_restrictions(node)
-        graph_to_visualize.get("nodes").append(str(node))
+        graph_to_visualize.get("nodes").append({'id': i, 'label': str(node)})
         graph_to_visualize.get("edges").append({'from': str(node), 'to': str(parent_node), 'label': str(edge)})
 
     else:
@@ -74,6 +73,7 @@ def get_class_restrictions(knowledge_graph):
     classes_with_restrictions = [(_, res) for (_, res)
                                  in knowledge_graph.subject_objects(RDFS.subClassOf)
                                  if isinstance(res, BNode)]
+    i = 0
     for x, y in classes_with_restrictions:
         for bnode, p, bnode_or_value in knowledge_graph.triples((y, None, None)):
             if is_restriction(bnode=bnode):
@@ -81,7 +81,8 @@ def get_class_restrictions(knowledge_graph):
                 # extract_nested_restrictions(bnode=bnode)
             else:
                 if collection_type.get(p) is not None:
-                    extract_collection_members((None, p, bnode_or_value), "Intersection")
+                    parent_node = f"Intersection-{i}"
+                    extract_collection_members((None, p, bnode_or_value), parent_node)
 
 
 def equivalent_properties(kg):
@@ -92,5 +93,5 @@ def equivalent_properties(kg):
 
 def get_graph_to_visualize():
     get_all_classes(knowledge_graph)
-    #get_class_restrictions(knowledge_graph)
+    # get_class_restrictions(knowledge_graph)
     return graph_to_visualize
