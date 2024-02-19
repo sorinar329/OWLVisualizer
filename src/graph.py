@@ -15,9 +15,9 @@ def get_all_classes(kg: Graph):
     for subclass, superclass in kg.subject_objects(RDFS.subClassOf):
         if isinstance(superclass, BNode):
             continue
-        graph_to_visualize.get("edges").append({'from': subclass, 'to': superclass})
-        graph_to_visualize.get("nodes").append({'node_id': superclass})
-        graph_to_visualize.get("nodes").append({'node_id': subclass})
+        graph_to_visualize.get("edges").append({'from': str(subclass), 'to': str(superclass)})
+        graph_to_visualize.get("nodes").append({'node_id': str(superclass)})
+        graph_to_visualize.get("nodes").append({'node_id': str(subclass)})
 
 
 def extract_collection_members(triple, parent_node):
@@ -32,8 +32,8 @@ def extract_collection_members(triple, parent_node):
         if isinstance(node, BNode) and is_restriction(node):
             return
             # extract_nested_restrictions(node)
-        graph_to_visualize.get("nodes").append(node)
-        graph_to_visualize.get("edges").append({'from': node, 'to': parent_node, 'label': edge})
+        graph_to_visualize.get("nodes").append(str(node))
+        graph_to_visualize.get("edges").append({'from': str(node), 'to': str(parent_node), 'label': str(edge)})
 
     else:
         for list_rest_triple in knowledge_graph.triples((el, None, None)):
