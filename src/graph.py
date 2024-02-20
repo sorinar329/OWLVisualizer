@@ -2,6 +2,7 @@ import rdflib
 from rdflib import Graph, OWL, RDFS, RDF
 from rdflib.term import BNode
 import random
+
 knowledge_graph = Graph()
 knowledge_graph.parse("data/mixing.owl")
 
@@ -21,7 +22,14 @@ def get_all_classes(kg: Graph):
         graph_to_visualize.get("edges").append({'from': str(subclass), 'to': str(superclass), 'label': 'subClassOf'})
     for node in nodes:
         label = node.split("#")[-1]
-        graph_to_visualize.get("nodes").append({'id': str(node), 'label': label})
+        if "Task" in label:
+            graph_to_visualize.get("nodes").append({'id': str(node), 'label': label, 'color': {"background": "lime",
+                                                                                               "border": "black"}})
+        elif "Motion" in label:
+            graph_to_visualize.get("nodes").append({'id': str(node), 'label': label, 'color': {"background": "orangered",
+                                                                                               "border": "black"}})
+        else:
+            graph_to_visualize.get("nodes").append({'id': str(node), 'label': label})
 
 
 def extract_collection_members(triple, parent_node, count):
@@ -37,13 +45,16 @@ def extract_collection_members(triple, parent_node, count):
             return
             # extract_nested_restrictions(node)
         node_id = random.randint(0, 10000)
-        graph_to_visualize.get("nodes").append({'id': str(node_id), 'label': str(node)})
+        graph_to_visualize.get("nodes").append(
+            {'id': str(node_id), 'label': str(node), 'color': {"background": "yellow",
+                                                               "border": "black"}})
 
-        graph_to_visualize.get("edges").append({'from': str(node_id), 'to': str(parent_node), 'label': str(edge).split('#')[-1]})
+        graph_to_visualize.get("edges").append(
+            {'from': str(node_id), 'to': str(parent_node), 'label': str(edge).split('#')[-1]})
         count += 1
     else:
         for list_rest_triple in knowledge_graph.triples((el, None, None)):
-            extract_collection_members(list_rest_triple, parent_node,count)
+            extract_collection_members(list_rest_triple, parent_node, count)
 
 
 def extract_nested_restrictions(bnode: BNode):
@@ -85,7 +96,8 @@ def get_class_restrictions(knowledge_graph):
                     parent_node = f"Intersection-{i}"
 
                     graph_to_visualize.get("nodes").append({'id': parent_node, 'label': parent_node})
-                    graph_to_visualize.get("edges").append({'from': str(x), 'to': str(parent_node), 'label': str(parent_node)})
+                    graph_to_visualize.get("edges").append(
+                        {'from': str(x), 'to': str(parent_node), 'label': str(parent_node)})
                     extract_collection_members((None, p, bnode_or_value), parent_node, i)
                     i += 1
 
