@@ -29,7 +29,7 @@ def get_all_classes(kg: Graph):
             graph_to_visualize.get("nodes").append({'id': str(node), 'label': label, 'color': {"background": "orangered",
                                                                                                "border": "black"}})
         else:
-            graph_to_visualize.get("nodes").append({'id': str(node), 'label': label})
+            graph_to_visualize.get("nodes").append({'id': str(node), 'label': label, "color": "lightblue"})
 
 
 def extract_collection_members(triple, parent_node, count):
