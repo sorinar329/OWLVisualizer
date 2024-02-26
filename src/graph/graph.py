@@ -1,6 +1,7 @@
 import rdflib
 from rdflib import Graph, OWL, RDFS, RDF
-from rdflib.term import BNode
+from rdflib.term import BNode, URIRef, Literal, Node
+from typing import Union
 import random
 
 knowledge_graph = Graph()
@@ -9,7 +10,7 @@ knowledge_graph.parse("data/mixing.owl")
 graph_to_visualize = {'nodes': [], 'edges': []}
 
 restriction_type = [OWL.hasValue, OWL.someValuesFrom, OWL.allValuesFrom]
-collection_type = {OWL.intersectionOf: 'Intersection', OWL.unionOf: 'Union'}
+collection_type = {OWL.intersectionOf: ('Intersection', 'owl:intersectionOf'), OWL.unionOf: ('Union', 'owl:unionOf')}
 
 
 def get_all_classes(kg: Graph):
@@ -17,22 +18,24 @@ def get_all_classes(kg: Graph):
     for subclass, superclass in kg.subject_objects(RDFS.subClassOf):
         if isinstance(superclass, BNode):
             continue
-        nodes.add(str(subclass))
-        nodes.add(str(superclass))
+        nodes.add(subclass)
+        nodes.add(subclass)
         graph_to_visualize.get("edges").append({'from': str(subclass), 'to': str(superclass), 'label': 'subClassOf'})
     for node in nodes:
-        label = node.split("#")[-1]
-        if "Task" in label:
-            graph_to_visualize.get("nodes").append({'id': str(node), 'label': label, 'color': {"background": "lime",
-                                                                                               "border": "black"}})
-        elif "Motion" in label:
-            graph_to_visualize.get("nodes").append({'id': str(node), 'label': label, 'color': {"background": "orangered",
-                                                                                               "border": "black"}})
+        graph_to_visualize.get("nodes").append({'id': str(node), 'label': uri_or_literal_2label(node)})
+
+
+def uri_or_literal_2label(node: Union[URIRef, Literal, Node]) -> str:
+    if isinstance(node, Literal):
+        return str(node)
+    elif isinstance(node, URIRef):
+        if '#' in str(node):
+            return str(node).split('#')[-1]
         else:
-            graph_to_visualize.get("nodes").append({'id': str(node), 'label': label, "color": "lightblue"})
+            return str(node).split('/')[-1]
 
 
-def extract_collection_members(triple, parent_node, count):
+def extract_collection_members(triple, parent_node):
     _, p, el = triple
     if p == RDF.first:
         edge, node = None, None
@@ -44,17 +47,16 @@ def extract_collection_members(triple, parent_node, count):
         if isinstance(node, BNode) and is_restriction(node):
             return
             # extract_nested_restrictions(node)
-        node_id = random.randint(0, 10000)
-        graph_to_visualize.get("nodes").append(
-            {'id': str(node_id), 'label': str(node), 'color': {"background": "yellow",
-                                                               "border": "black"}})
+        else:
+            node_id = f'{node}_{random.randint(0, 10000)}'
+            edge = uri_or_literal_2label(edge)
+            graph_to_visualize.get("nodes").append({'id': node_id, 'label': uri_or_literal_2label(node)})
 
-        graph_to_visualize.get("edges").append(
-            {'from': str(node_id), 'to': str(parent_node), 'label': str(edge).split('#')[-1]})
-        count += 1
+            graph_to_visualize.get("edges").append({'from': node_id, 'to': parent_node, 'label': edge})
+
     else:
         for list_rest_triple in knowledge_graph.triples((el, None, None)):
-            extract_collection_members(list_rest_triple, parent_node, count)
+            extract_collection_members(list_rest_triple, parent_node)
 
 
 def extract_nested_restrictions(bnode: BNode):
@@ -93,12 +95,12 @@ def get_class_restrictions(knowledge_graph):
                 # extract_nested_restrictions(bnode=bnode)
             else:
                 if collection_type.get(p) is not None:
-                    parent_node = f"Intersection-{i}"
+                    parent_node = f"{collection_type.get(p)[0]}-{i}"
 
                     graph_to_visualize.get("nodes").append({'id': parent_node, 'label': parent_node})
-                    graph_to_visualize.get("edges").append(
-                        {'from': str(x), 'to': str(parent_node), 'label': str(parent_node)})
-                    extract_collection_members((None, p, bnode_or_value), parent_node, i)
+                    graph_to_visualize.get("edges").append({'from': str(x), 'to': str(parent_node),
+                                                            'label': collection_type.get(p)[1]})
+                    extract_collection_members((None, p, bnode_or_value), parent_node)
                     i += 1
 
 
@@ -112,3 +114,7 @@ def get_graph_to_visualize():
     get_all_classes(knowledge_graph)
     get_class_restrictions(knowledge_graph)
     return graph_to_visualize
+
+
+def get_classes():
+    return get_all_classes(knowledge_graph)
