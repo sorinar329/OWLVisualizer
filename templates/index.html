@@ -15,10 +15,6 @@
       height: 600px;
       border: 1px solid lightgray;
     }
-    #autocompleteInput{
-      width: 500px;
-      margin-left: -300px;
-    }
   </style>
 </head>
 <body>
@@ -36,6 +32,10 @@
           </form>
         </li>
       </ul>
+      <!-- Button trigger modal -->
+      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter">
+        QueryBuilder
+      </button>
      <div class="container ">
       <form class="form-inline">
         <div class="input-group">
@@ -45,12 +45,81 @@
       </form>
     </div>
     </div>
-  </nav>
 
+  </nav>
+<!-- Modal -->
+<div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLongTitle">Query Builder</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+       <div class="row">
+            <div class="col">
+              <select class="custom-select custom-select-sm" id="select1" onchange="showSelectFields()">
+        <option selected>Open this select menu</option>
+        <option value="1">One</option>
+        <option value="2">Two</option>
+        <option value="3">Three</option>
+      </select>
+         </div>
+      <div class="col">
+      <select class="custom-select custom-select-sm d-none" id="select2" onchange="showThirdSelect()">
+        <option selected>Open this select menu</option>
+        <option value="1">One</option>
+        <option value="2">Two</option>
+        <option value="3">Three</option>
+      </select>
+         </div>
+      <div class="col">
+      <select class="custom-select custom-select-sm d-none" id="select3">
+        <option selected>Open this select menu</option>
+        <option value="1">One</option>
+        <option value="2">Two</option>
+        <option value="3">Three</option>
+      </select>
+         </div>
+      </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
 <div id="mynetwork"></div>
 
 <script>
   viz_graph()
+   function showSelectFields() {
+    var select1 = document.getElementById("select1");
+    var select2Group = document.getElementById("select2");
+    var select3Group = document.getElementById("select3");
+
+    if (select1.value !== "") {
+      select2Group.classList.remove("d-none");
+      select3Group.classList.add("d-none");
+    } else {
+      select2Group.classList.add("d-none");
+      select3Group.classList.add("d-none");
+    }
+  }
+
+  function showThirdSelect() {
+    var select2 = document.getElementById("select2");
+    var select3Group = document.getElementById("select3");
+
+    if (select2.value !== "") {
+      select3Group.classList.remove("d-none");
+    } else {
+      select3Group.classList.add("d-none");
+    }
+  }
 </script>
 
 <!-- Bootstrap JS and jQuery -->
