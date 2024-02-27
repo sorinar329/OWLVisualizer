@@ -59,24 +59,15 @@
             <div class="modal-body">
                 <div class="row">
                     <div class="col">
-                        <select class="custom-select custom-select-sm" id="select1">
+                        <select class="custom-select custom-select-sm" id="select1" onchange="showSelectFields()">
                         </select>
                     </div>
                     <div class="col">
-                        <select class="custom-select custom-select-sm d-none" id="select2" onchange="showThirdSelect()">
-                            <option selected>Open this select menu</option>
-                            <option value="1">One</option>
-                            <option value="2">Two</option>
-                            <option value="3">Three</option>
-                        </select>
+                        <select class="custom-select custom-select-sm d-none" id="select2"
+                                onchange="showSelectFields()"></select>
                     </div>
                     <div class="col">
-                        <select class="custom-select custom-select-sm d-none" id="select3">
-                            <option selected>Open this select menu</option>
-                            <option value="1">One</option>
-                            <option value="2">Two</option>
-                            <option value="3">Three</option>
-                        </select>
+                        <select class="custom-select custom-select-sm d-none" id="select3"></select>
                     </div>
                 </div>
             </div>
@@ -101,15 +92,30 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        var select1 = document.getElementById('select1');
+        const select1 = document.getElementById('select1');
+        const select2 = document.getElementById('select2');
+        const select3 = document.getElementById('select3');
         if (select1) {
             select1.addEventListener('click', function () {
-                showSelectFields();
-                populate_suggestions_triple();
+                const selectedOption = select1.value;
+                populate_suggestions_triple(selectedOption, 1);
+            });
+        }
+        if (select2) {
+            select2.addEventListener('click', function () {
+                const selectedOption = select2.value;
+                populate_suggestions_triple(selectedOption, 2);
             });
         }
 
-        var autocompleteInput = document.getElementById('autocompleteInput');
+        if (select3) {
+            select3.addEventListener('click', function () {
+                const selectedOption = select3.value;
+                populate_suggestions_triple(selectedOption, 3);
+            });
+        }
+
+        const autocompleteInput = document.getElementById('autocompleteInput');
         if (autocompleteInput) {
             autocompleteInput.addEventListener('input', function () {
                 // Hier kannst du weitere Aktionen für die Eingabe durchführen

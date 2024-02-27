@@ -1,45 +1,56 @@
-function populate_suggestions_triple() {
-    fetch('/query_builder')
+function populate_suggestions_triple(selectedOption) {
+    fetch(`/query_builder?selectedOption=${encodeURIComponent(selectedOption)}`)
         .then(response => response.json())
         .then(data => {
             const select1 = document.getElementById('select1');
-            select1.innerHTML = ''; // Leeren des vorhandenen Inhalts
+            const select2 = document.getElementById('select2');
+            const select3 = document.getElementById('select3');
 
-            for (let i = 0; i < data.length; i++) {
+            let currentSelect;
+            let keys;
+
+            if (select1.value === '') {
+                keys = Object.keys(data);
+                currentSelect = select1;
+            } else if (select2.value === '') {
+                keys = Object.keys(data[select1.value]);
+                currentSelect = select2;
+            } else {
+                keys = data[select1.value][select2.value];
+                currentSelect = select3;
+            }
+
+            currentSelect.innerHTML = '';
+
+            for (let i = 0; i < keys.length; i++) {
                 const newOption = document.createElement('option');
-                const optionText = document.createTextNode(data[i][0]);
+                const optionText = document.createTextNode(keys[i]);
                 newOption.appendChild(optionText);
-                newOption.setAttribute('value', data[i][0]);
-                select1.appendChild(newOption);
+                newOption.setAttribute('value', keys[i]);
+                currentSelect.appendChild(newOption);
             }
         })
         .catch(error => console.error('Error fetching data:', error));
 }
 
 function showSelectFields() {
-        var select1 = document.getElementById("select1");
-        var select2Group = document.getElementById("select2");
-        var select3Group = document.getElementById("select3");
+    const select1 = document.getElementById("select1");
+    const select2 = document.getElementById("select2");
+    const select3 = document.getElementById("select3");
 
-        if (select1.value !== "") {
-            select2Group.classList.remove("d-none");
-            select3Group.classList.add("d-none");
-        } else {
-            select2Group.classList.add("d-none");
-            select3Group.classList.add("d-none");
-        }
+    if (select1.value !== "") {
+        select2.classList.remove("d-none");
+    } else {
+        select2.classList.add("d-none");
     }
-
-function showThirdSelect() {
-    var select2 = document.getElementById("select2");
-    var select3Group = document.getElementById("select3");
 
     if (select2.value !== "") {
-        select3Group.classList.remove("d-none");
+        select3.classList.remove("d-none");
     } else {
-        select3Group.classList.add("d-none");
+        select3.classList.add("d-none");
     }
 }
+
 
 //Should be used to implement filtering the graph ?
 function filter() {

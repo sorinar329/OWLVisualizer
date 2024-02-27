@@ -1,6 +1,9 @@
 from rdflib import Graph, URIRef, RDF, OWL
 import rdflib.util
 
+from collections import defaultdict
+import json
+
 motion = "http://www.ease-crc.org/ont/mixing#WhirlstormMotion"
 knowledge_graph = Graph()
 knowledge_graph.parse("data/mixing.owl")
@@ -38,6 +41,21 @@ class QueryBuilder:
         #         print(s3, p3, o3)
         #         for s4, p4, o4 in self.kg.triples((o3, None, None)):
         #             print(s4, p4, o4)
+
+    def mock_suggestion2(self):
+        suggestions = list(self.kg.triples((URIRef(motion), None, None)))
+        mocked_solution = {}
+        for triple in suggestions:
+            s, p, o = [str(s) for s in triple]
+            # Erstelle das Subjekt, falls es noch nicht existiert
+            if s not in mocked_solution:
+                mocked_solution[s] = {}
+
+            if p not in mocked_solution[s]:
+                mocked_solution[s][p] = []
+
+            mocked_solution[s][p].append(o)
+        return mocked_solution
 
 
 def get_query_builder():

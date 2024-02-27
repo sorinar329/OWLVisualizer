@@ -26,14 +26,12 @@ def suggest_classes():
     print(classes)
     return jsonify(classes)
 
-
 @app.route('/query_builder', methods=["GET"])
 def suggest_triples():
     qb = query_builder.get_query_builder()
-    # if request.method == "POST":
-    #     print("Hi")
-    # else:
-    return jsonify(qb.mock_suggestion())
+    suggestions = qb.mock_suggestion2()
+    selected_option = request.args.get('selectedOption')
+    return jsonify(suggestions)
 
 
 if __name__ == '__main__':
