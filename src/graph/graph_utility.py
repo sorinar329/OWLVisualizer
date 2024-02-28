@@ -49,3 +49,7 @@ def extract_collection_recursive(knowledge_graph: Graph, triple):
     else:
         for list_rest_triple in knowledge_graph.triples((el, None, None)):
             return extract_collection_recursive(knowledge_graph=knowledge_graph, triple=list_rest_triple)
+
+
+def get_collection_type(property):
+    return collection_type.get(property)

@@ -49,7 +49,6 @@ class QueryBuilder:
         mocked_solution = {}
         for triple in suggestions:
             s, p, o = [str(s) for s in triple]
-            # Erstelle das Subjekt, falls es noch nicht existiert
             if s not in mocked_solution:
                 mocked_solution[s] = {}
 
@@ -73,21 +72,31 @@ class QueryBuilder:
                 if isinstance(s, BNode) and graph_utility.is_list(self.kg, bnode=s):
                     print(f'Subject: {s}')
 
-            if p not in mocked_solution[s][s_label]:
-                mocked_solution[s][s_label][p] = {p_label: []}
-
             if isinstance(o, BNode):
-                if graph_utility.is_list(self.kg, o):
-                    print(f'Object: {o}')
-                    for t2 in self.kg.triples((o, None, None)):
-                        for _, p2, o2 in self.kg.triples((t2[2], None, None)):
-                            print(p2, o2)
-                            # if p2 == RDF.rest:
-                            # print(len(list(self.kg.triples((o2, None, None)))))
-                            print(graph_utility.extract_collection_recursive(self.kg, (None, p2, o2)))
-            mocked_solution[s][s_label][p][p_label].append([o, o_label])
+                for _, p2, o2 in self.kg.triples((o, None, None)):
+                    t = graph_utility.get_collection_type(p2)
+                    # mocked_solution[s][s_label][str(p2)][t[1]].append([o2, t[0]])
+                # if graph_utility.is_list(self.kg, o):
+                #     print(f'Object: {o}')
+                #     for t2 in self.kg.triples((o, None, None)):
+                #         for _, p2, o2 in self.kg.triples((t2[2], None, None)):
+                #             print(p2, o2)
+                #
+                #             print(graph_utility.extract_collection_recursive(self.kg, (None, p2, o2)))
+            else:
+                if p not in mocked_solution[s][s_label]:
+                    mocked_solution[s][s_label][p] = {p_label: []}
+
+                mocked_solution[s][s_label][p][p_label].append([o, o_label])
 
         return mocked_solution
 
+
 def get_query_builder():
     return QueryBuilder(knowledge_graph)
+
+
+friends = [{'iri': 'http://bla#Alice', 'label': 'Alice'}, {'iri': 'http://bla#Bob', 'label': 'Bob'}]
+hasFriendsRelation = {'iri': 'hasFriendRelation', 'label': 'hasFriend', 'objects': friends}
+anotherFriend = {'iri': 'http://bla#Charlie', 'label': 'Charlie', 'predicate': [hasFriendsRelation]}
+suggestions = {'subject': [anotherFriend]}
