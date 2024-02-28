@@ -1,8 +1,10 @@
-from rdflib import Graph, URIRef, RDF, OWL
+from rdflib import Graph, URIRef, RDF, OWL, BNode
 import rdflib.util
 
 from collections import defaultdict
 import json
+
+from graph import graph_utility
 
 motion = "http://www.ease-crc.org/ont/mixing#WhirlstormMotion"
 knowledge_graph = Graph()
@@ -57,6 +59,35 @@ class QueryBuilder:
             mocked_solution[s][p].append(o)
         return mocked_solution
 
+    def mock_suggestions3(self):
+        suggestions = list(self.kg.triples((URIRef(motion), None, None)))
+        mocked_solution = {}
+        for s, p, o in suggestions:
+
+            s_label = graph_utility.uri_or_literal_2label(node=s)
+            p_label = graph_utility.uri_or_literal_2label(node=p)
+            o_label = graph_utility.uri_or_literal_2label(node=o)
+
+            if s not in mocked_solution:
+                mocked_solution[s] = {s_label: {}}
+                if isinstance(s, BNode) and graph_utility.is_list(self.kg, bnode=s):
+                    print(f'Subject: {s}')
+
+            if p not in mocked_solution[s][s_label]:
+                mocked_solution[s][s_label][p] = {p_label: []}
+
+            if isinstance(o, BNode):
+                if graph_utility.is_list(self.kg, o):
+                    print(f'Object: {o}')
+                    for t2 in self.kg.triples((o, None, None)):
+                        for _, p2, o2 in self.kg.triples((t2[2], None, None)):
+                            print(p2, o2)
+                            # if p2 == RDF.rest:
+                            # print(len(list(self.kg.triples((o2, None, None)))))
+                            print(graph_utility.extract_collection_recursive(self.kg, (None, p2, o2)))
+            mocked_solution[s][s_label][p][p_label].append([o, o_label])
+
+        return mocked_solution
 
 def get_query_builder():
     return QueryBuilder(knowledge_graph)
