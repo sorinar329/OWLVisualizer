@@ -51,7 +51,17 @@ function showSelectFields() {
     }
 }
 
+function clearSelectedOptions() {
+        document.getElementById("select1").selectedIndex = -1;
+        document.getElementById("select2").selectedIndex = -1;
+        document.getElementById("select3").selectedIndex = -1;
+    }
 
+    // Event listener for modal close event
+    $('#exampleModalCenter').on('hidden.bs.modal', function (e) {
+        clearSelectedOptions();
+        showSelectFields()
+    });
 //Should be used to implement filtering the graph ?
 function filter() {
 
