@@ -16,39 +16,55 @@ def uri_or_literal_2label(node: Union[URIRef, Literal, Node, str]) -> str:
             return str(node).split('/')[-1]
 
 
-def is_list(knowledge_graph: Graph, bnode: BNode):
-    for _, _, c in knowledge_graph.triples((bnode, None, None)):
-        for p in knowledge_graph.predicates(c):
-            if p == RDF.first:
-                return True
+def is_list2(knowledge_graph: Graph, node: Node):
+    if isinstance(node, BNode):
+        for _, _, c in knowledge_graph.triples((node, None, None)):
+            for p in knowledge_graph.predicates(c):
+                if p == RDF.first:
+                    return True
     return False
 
 
-def is_restriction(knowledge_graph: Graph, bnode: BNode):
-    matched_triple = list(knowledge_graph.triples((bnode, RDF.type, OWL.Restriction)))
-    return len(matched_triple) > 0
+def is_restriction2(knowledge_graph: Graph, node: Node):
+    if isinstance(node, BNode):
+        matched_triple = list(knowledge_graph.triples((node, RDF.type, OWL.Restriction)))
+        return len(matched_triple) > 0
+    else:
+        return False
 
 
 def extract_collection_recursive(knowledge_graph: Graph, triple):
     _, p, el = triple
     if p == RDF.first:
+        if isinstance(el, URIRef):
+            return None, el
+
         edge, node = None, None
         for _, p2, el2 in knowledge_graph.triples((el, None, None)):
             if p2 == OWL.onProperty:
                 edge = el2
             if p2 in restriction_type:
                 node = el2
-
-        if isinstance(node, BNode) and is_restriction(node):
-            return
+        if is_restriction2(knowledge_graph, node):
+            print("is restr")
         else:
-            print("Return element")
-            print(node, edge)
-            return node, edge
+            return edge, node
 
     else:
         for list_rest_triple in knowledge_graph.triples((el, None, None)):
             return extract_collection_recursive(knowledge_graph=knowledge_graph, triple=list_rest_triple)
+
+
+def extract_restriction(kg: Graph, bnode: BNode):
+    pred, obj = None, None
+
+    for _, p, el in kg.triples((bnode, None, None)):
+        if p == OWL.onProperty:
+            pred = el
+        if p in restriction_type:
+            obj = el
+
+    return pred, obj
 
 
 def get_collection_type(property):

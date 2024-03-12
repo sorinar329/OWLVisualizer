@@ -1,11 +1,11 @@
-import rdflib
 from rdflib import Graph, OWL, RDFS, RDF
 from rdflib.term import BNode, URIRef, Literal, Node
 from typing import Union
+from src.graph.graph_utility import extract_restriction, is_restriction2, is_list2, extract_collection_recursive
 import random
 
 knowledge_graph = Graph()
-knowledge_graph.parse("data/mixing.owl")
+knowledge_graph.parse("data/food_cutting.owl")
 
 graph_to_visualize = {'nodes': [], 'edges': []}
 
@@ -104,17 +104,76 @@ def get_class_restrictions(knowledge_graph):
                     i += 1
 
 
-def equivalent_properties(kg):
-    for cls, p, cls_or_bnode in kg.triples((None, OWL.equivalentClass, None)):
-        if is_restriction(bnode=cls_or_bnode):
-            extract_nested_restrictions(cls_or_bnode)
+def get_class_restrictions2(knowledge_graph):
+    classes_with_restrictions = [res for (_, res)
+                                 in knowledge_graph.subject_objects(RDFS.subClassOf)
+                                 if isinstance(res, BNode)]
+    i = 0
+    for restrictions in classes_with_restrictions:
+        for triple in knowledge_graph.triples((restrictions, None, None)):
+            # if is_restriction2(knowledge_graph, triple[2]):
+            #     print("Is restriction")
+            if is_list2(knowledge_graph, triple[2]):
+                for triple2 in knowledge_graph.triples((triple[2], None, None)):
+                    print(extract_collection_recursive(knowledge_graph, triple2))
+            # else:
+            #     print("Is URIRef")
+            #     print(triple[2])
+            # if is_restriction2(knowledge_graph, triple[0]):
+            #     for triple2 in knowledge_graph.triples((triple[2], None, None)):
+            #         if triple[1] == OWL.onProperty:
+            #             print(triple[2])
+            #         for triple3 in knowledge_graph.triples((triple2[2],None, None)):
+            #             if triple3[1] == RDF.first:
+            #                 print(triple3[2])
+                # val = extract_restriction(knowledge_graph, triple[0])
+                # if is_list2(knowledge_graph, val[1]):
+                #     print("List: {}".format(val[1]))
+                #     for triple2 in knowledge_graph.triples((val[1], None, None)):
+                #         extract_collection_recursive(knowledge_graph, triple2)
+                # else:
+                #     print("Res: {}".format(val))
+
+
+            # else:
+            #     continue
+            # if is_restriction(bnode=bnode):
+            #     continue
+            #     # extract_nested_restrictions(bnode=bnode)
+            # else:
+            #     if collection_type.get(p) is not None:
+            #         parent_node = f"{collection_type.get(p)[0]}-{i}"
+            #
+            #         graph_to_visualize.get("nodes").append({'id': parent_node, 'label': parent_node})
+            #         graph_to_visualize.get("edges").append({'from': str(x), 'to': str(parent_node),
+            #                                                 'label': collection_type.get(p)[1]})
+            #         extract_collection_members((None, p, bnode_or_value), parent_node)
+            #         i += 1
+
+
+# def equivalent_properties(kg):
+#    for triple in kg.triples((None, OWL.equivalentClass, None)):
+# if is_list2(knowledge_graph, node=triple[2]):
+#     for _, _, o in kg.triples((triple[2], None, None)):
+#         if is_list2(knowledge_graph, o):
+#             for list_triple in kg.triples((o, None, None)):
+#                 pred, obj = extract_collection_recursive(knowledge_graph, list_triple)
+#                 print(pred, obj)
+# if is_restriction2(knowledge_graph, node=triple[2]):
+#     print(triple[0])
+#     pred, obj = extract_restriction(knowledge_graph, triple[2])
+# graph_to_visualize.get("edges").append({'from': str(cls), 'to': str(parent_node),
+#                                         'label': uri_or_literal_2label(pred)})
 
 
 def get_graph_to_visualize():
     get_all_classes(knowledge_graph)
-    get_class_restrictions(knowledge_graph)
-    return graph_to_visualize
+    get_class_restrictions2(knowledge_graph)
+    # return graph_to_visualize
 
 
 def get_classes():
     return get_all_classes(knowledge_graph)
+
+
+get_graph_to_visualize()

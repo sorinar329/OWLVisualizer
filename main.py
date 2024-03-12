@@ -1,10 +1,12 @@
+import rdflib
 from flask import Flask, render_template, jsonify, request
 import graph.graph
 import graph.coloring
 import query_builder
+from urllib.parse import unquote
 
 app = Flask(__name__)
-
+qb = query_builder.get_query_builder()
 
 @app.route('/')
 def index():
@@ -26,12 +28,19 @@ def suggest_classes():
     print(classes)
     return jsonify(classes)
 
-@app.route('/query_builder', methods=["GET"])
+
+@app.route('/query_builder', methods=["GET", "POST"])
 def suggest_triples():
-    qb = query_builder.get_query_builder()
-    suggestions = qb.mock_suggestion2()
-    selected_option = request.args.get('selectedOption')
-    return jsonify(suggestions)
+    if request.method == 'POST':
+        print("Received data")
+        print(f"Chosen object {unquote(request.json['selectedValues'][2])}")
+        triple = [unquote(el) for el in request.json['selectedValues']]
+        qb.set_triple(triple)
+        return jsonify(qb.mock_suggestion2())
+    else:
+        print("sending data")
+        suggestions = qb.mock_suggestion2()
+        return jsonify(suggestions)
 
 
 if __name__ == '__main__':

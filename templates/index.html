@@ -56,27 +56,14 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body">
-                <div class="row">
-                    <div class="col">
-                        <select class="custom-select custom-select-sm" id="select1" onchange="showSelectFields()">
-                        </select>
-                    </div>
-                    <div class="col">
-                        <select class="custom-select custom-select-sm d-none" id="select2"
-                                onchange="showSelectFields()"></select>
-                    </div>
-                    <div class="col">
-                        <select class="custom-select custom-select-sm d-none" id="select3"></select>
-                    </div>
-                </div>
-            </div>
+            <div class="modal-body" id="query-builder-body" style="flex: 1; overflow-y: auto;"></div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-primary" onclick="saveChanges()">Save changes</button>
             </div>
         </div>
     </div>
+</div>
 </div>
 
 <div id="mynetwork"></div>
@@ -92,40 +79,9 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const select1 = document.getElementById('select1');
-        const select2 = document.getElementById('select2');
-        const select3 = document.getElementById('select3');
-        if (select1) {
-            select1.addEventListener('click', function () {
-                const selectedOption = select1.value;
-                populate_suggestions_triple(selectedOption, 1);
-            });
-        }
-        if (select2) {
-            select2.addEventListener('click', function () {
-                const selectedOption = select2.value;
-                populate_suggestions_triple(selectedOption, 2);
-            });
-        }
-
-        if (select3) {
-            select3.addEventListener('click', function () {
-                const selectedOption = select3.value;
-                populate_suggestions_triple(selectedOption, 3);
-                console.log(selectedOption)
-            });
-        }
-
-        const autocompleteInput = document.getElementById('autocompleteInput');
-        if (autocompleteInput) {
-            autocompleteInput.addEventListener('input', function () {
-                // Hier kannst du weitere Aktionen für die Eingabe durchführen
-                console.log('Input changed:', autocompleteInput.value);
-            });
-        }
+        queryBuilder();
     });
 
-    // Hier wird die Funktion viz_graph beim Laden der Seite aufgerufen
     viz_graph();
 
 </script>
