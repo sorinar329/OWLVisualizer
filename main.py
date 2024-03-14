@@ -79,7 +79,7 @@ def upload_file_graph():
             if os.path.isfile(file_path):
                 os.unlink(file_path)
         except Exception as e:
-            return jsonify({'error': f'Failed to delete {file_path}: {e}'})
+            return jsonify({'error'})
 
     # Save the new uploaded file
     if 'file' not in request.files:
