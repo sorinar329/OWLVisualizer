@@ -1,7 +1,7 @@
 from rdflib import Graph, OWL, RDFS, RDF
 from rdflib.term import BNode, URIRef, Literal, Node
 from typing import Union
-from src.graph.graph_utility import extract_restriction, is_restriction2, is_list2, extract_collection_recursive
+from src.graph.graph_utility import recursive_pattern_matching
 import random
 
 knowledge_graph = Graph()
@@ -105,65 +105,50 @@ def get_class_restrictions(knowledge_graph):
 
 
 def get_class_restrictions2(knowledge_graph):
-    classes_with_restrictions = [res for (_, res)
+    classes_with_restrictions = [[cls, res] for (cls, res)
                                  in knowledge_graph.subject_objects(RDFS.subClassOf)
-                                 if isinstance(res, BNode)]
-    i = 0
-    for restrictions in classes_with_restrictions:
-        for triple in knowledge_graph.triples((restrictions, None, None)):
-            # if is_restriction2(knowledge_graph, triple[2]):
-            #     print("Is restriction")
-            if is_list2(knowledge_graph, triple[2]):
-                for triple2 in knowledge_graph.triples((triple[2], None, None)):
-                    print(extract_collection_recursive(knowledge_graph, triple2))
-            # else:
-            #     print("Is URIRef")
-            #     print(triple[2])
-            # if is_restriction2(knowledge_graph, triple[0]):
-            #     for triple2 in knowledge_graph.triples((triple[2], None, None)):
-            #         if triple[1] == OWL.onProperty:
-            #             print(triple[2])
-            #         for triple3 in knowledge_graph.triples((triple2[2],None, None)):
-            #             if triple3[1] == RDF.first:
-            #                 print(triple3[2])
-                # val = extract_restriction(knowledge_graph, triple[0])
-                # if is_list2(knowledge_graph, val[1]):
-                #     print("List: {}".format(val[1]))
-                #     for triple2 in knowledge_graph.triples((val[1], None, None)):
-                #         extract_collection_recursive(knowledge_graph, triple2)
-                # else:
-                #     print("Res: {}".format(val))
+                                 if isinstance(res, BNode) and URIRef(
+            "http://purl.obolibrary.org/obo/FOODON_03301337") == cls]
+    grouped_triples = []
 
+    for cls, restrictions in classes_with_restrictions:
+        triples = [[cls, RDFS.subClassOf, restrictions]]
+        recursive_pattern_matching(knowledge_graph, restrictions, triples)
+        grouped_triples.append(triples)
 
-            # else:
-            #     continue
-            # if is_restriction(bnode=bnode):
-            #     continue
-            #     # extract_nested_restrictions(bnode=bnode)
-            # else:
-            #     if collection_type.get(p) is not None:
-            #         parent_node = f"{collection_type.get(p)[0]}-{i}"
-            #
-            #         graph_to_visualize.get("nodes").append({'id': parent_node, 'label': parent_node})
-            #         graph_to_visualize.get("edges").append({'from': str(x), 'to': str(parent_node),
-            #                                                 'label': collection_type.get(p)[1]})
-            #         extract_collection_members((None, p, bnode_or_value), parent_node)
-            #         i += 1
+    collection_idx = 0
+    restriction_idx = 0
+    parent_node = str(grouped_triples[0][0][0])
+    child_node = f'Restriction-{restriction_idx}'
+    edge = uri_or_literal_2label(grouped_triples[0][0][1])
+    graph_to_visualize.get("nodes").append({'id': child_node, 'label': child_node})
+    graph_to_visualize.get("edges").append({'from': child_node, 'to': parent_node,
+                                            'label': edge})
 
+    for s, p, o in grouped_triples[1]:
+        if ((p == RDF.first and not isinstance(o, BNode)) or p in collection_type or p in restriction_type
+                or p == OWL.onProperty):
+            print(s, p, o)
+            if p == OWL.onProperty:
+                edge = str(o)
 
-# def equivalent_properties(kg):
-#    for triple in kg.triples((None, OWL.equivalentClass, None)):
-# if is_list2(knowledge_graph, node=triple[2]):
-#     for _, _, o in kg.triples((triple[2], None, None)):
-#         if is_list2(knowledge_graph, o):
-#             for list_triple in kg.triples((o, None, None)):
-#                 pred, obj = extract_collection_recursive(knowledge_graph, list_triple)
-#                 print(pred, obj)
-# if is_restriction2(knowledge_graph, node=triple[2]):
-#     print(triple[0])
-#     pred, obj = extract_restriction(knowledge_graph, triple[2])
-# graph_to_visualize.get("edges").append({'from': str(cls), 'to': str(parent_node),
-#                                         'label': uri_or_literal_2label(pred)})
+            if p in collection_type:
+                parent_node = child_node
+                child_node = f"{collection_type.get(p)[0]}-{collection_idx}"
+                collection_idx += 1
+                print(child_node)
+
+            if p in restriction_type:
+                parent_node = child_node
+                child_node = f'Restriction-{restriction_idx}'
+                restriction_idx += 1
+        # if p == OWL.intersectionOf:
+        #     parent_node = f"{collection_type.get(p)[0]}-{i}"
+        #     i += 1
+
+        # graph_to_visualize.get("nodes").append({'id': parent_node, 'label': parent_node})
+        # graph_to_visualize.get("edges").append({'from': str(x), 'to': str(parent_node),
+        #                                         'label': collection_type.get(p)[1]})
 
 
 def get_graph_to_visualize():

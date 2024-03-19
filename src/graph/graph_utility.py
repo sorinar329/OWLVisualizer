@@ -16,55 +16,11 @@ def uri_or_literal_2label(node: Union[URIRef, Literal, Node, str]) -> str:
             return str(node).split('/')[-1]
 
 
-def is_list2(knowledge_graph: Graph, node: Node):
-    if isinstance(node, BNode):
-        for _, _, c in knowledge_graph.triples((node, None, None)):
-            for p in knowledge_graph.predicates(c):
-                if p == RDF.first:
-                    return True
-    return False
-
-
-def is_restriction2(knowledge_graph: Graph, node: Node):
-    if isinstance(node, BNode):
-        matched_triple = list(knowledge_graph.triples((node, RDF.type, OWL.Restriction)))
-        return len(matched_triple) > 0
-    else:
-        return False
-
-
-def extract_collection_recursive(knowledge_graph: Graph, triple):
-    _, p, el = triple
-    if p == RDF.first:
-        if isinstance(el, URIRef):
-            return None, el
-
-        edge, node = None, None
-        for _, p2, el2 in knowledge_graph.triples((el, None, None)):
-            if p2 == OWL.onProperty:
-                edge = el2
-            if p2 in restriction_type:
-                node = el2
-        if is_restriction2(knowledge_graph, node):
-            print("is restr")
-        else:
-            return edge, node
-
-    else:
-        for list_rest_triple in knowledge_graph.triples((el, None, None)):
-            return extract_collection_recursive(knowledge_graph=knowledge_graph, triple=list_rest_triple)
-
-
-def extract_restriction(kg: Graph, bnode: BNode):
-    pred, obj = None, None
-
-    for _, p, el in kg.triples((bnode, None, None)):
-        if p == OWL.onProperty:
-            pred = el
-        if p in restriction_type:
-            obj = el
-
-    return pred, obj
+def recursive_pattern_matching(knowledge_graph: Graph, node: Node, result: []):
+    for s, p, o in knowledge_graph.triples((node, None, None)):
+        if p in collection_type or p in restriction_type or p == RDF.first or p == RDF.rest or p == OWL.onProperty:
+            result.extend([[s, p, o]])
+        recursive_pattern_matching(knowledge_graph, o, result)
 
 
 def get_collection_type(property):
