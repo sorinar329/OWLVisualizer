@@ -1,10 +1,10 @@
 from flask import Flask, render_template, jsonify, request
-import graph.graph
-import graph.coloring
+import src.graph.graph
+import src.graph.coloring
 import os
 from rdflib import Graph, OWL, RDFS, RDF
-from graph import coloring
-from graph import graph
+from src.graph import coloring
+from src.graph import graph
 #import query_builder
 
 app = Flask(__name__)
@@ -21,13 +21,13 @@ def owlviz():
 
 cached_data = None
 cached_status = False
-
+data_path = "C:\Dev\OWLVisualizer\data"
 @app.route('/get_graph_data_rdf')
 def get_graph_data_rdf():
     global cached_data
     global cached_status
-    file_path = [os.path.join("/home/sorin/code/nutronGit/nutronGit/data", file) for file in
-                 os.listdir("/home/sorin/code/nutronGit/nutronGit/data")]
+    file_path = [os.path.join(data_path, file) for file in
+                 os.listdir(data_path)]
 
     knowledge_graph = Graph()
     knowledge_graph.parse(file_path[0])
@@ -45,10 +45,6 @@ def get_graph_data_rdf():
         coloring.color_classes(graph_visualize)
         coloring.color_parameters(graph_visualize)
         cached_data_new = {'nodes': graph_visualize.get("nodes"), 'edges': graph_visualize.get("edges")}
-
-
-
-
 
         return jsonify(cached_data_new)
 
@@ -72,7 +68,7 @@ def suggest_classes():
 @app.route('/upload', methods=['POST'])
 def upload_file_graph():
     # Delete existing files in the folder
-    folder_path = '/home/sorin/code/nutronGit/nutronGit/data/'
+    folder_path = data_path
     for filename in os.listdir(folder_path):
         file_path = os.path.join(folder_path, filename)
         try:
@@ -94,3 +90,5 @@ def upload_file_graph():
 
     return jsonify({'filename': file.filename})
 
+if __name__ == '__main__':
+    app.run()
