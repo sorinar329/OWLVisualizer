@@ -1,11 +1,11 @@
 from rdflib import Graph, OWL, RDFS, RDF
 from rdflib.term import BNode, URIRef, Literal, Node
 from typing import Union
-from src.graph.graph_utility import recursive_pattern_matching
+from src.graph.graph_utility import recursive_pattern_matching, extract_property_value
 import random
 
 knowledge_graph = Graph()
-knowledge_graph.parse("data/food_cutting.owl")
+knowledge_graph.parse("/home/mkuempel/workspace/OWLVisualizer/data/food_cutting.owl")
 
 graph_to_visualize = {'nodes': [], 'edges': []}
 
@@ -107,54 +107,66 @@ def get_class_restrictions(knowledge_graph):
 def get_class_restrictions2(knowledge_graph):
     classes_with_restrictions = [[cls, res] for (cls, res)
                                  in knowledge_graph.subject_objects(RDFS.subClassOf)
-                                 if isinstance(res, BNode) and URIRef(
-            "http://purl.obolibrary.org/obo/FOODON_03301337") == cls]
+                                 if isinstance(res, BNode) and URIRef("http://purl.obolibrary.org/obo/FOODON_03301337")
+                                 == cls]
     grouped_triples = []
 
     for cls, restrictions in classes_with_restrictions:
         triples = [[cls, RDFS.subClassOf, restrictions]]
         recursive_pattern_matching(knowledge_graph, restrictions, triples)
-        grouped_triples.append(triples)
 
+        grouped_triples.append(triples)
     collection_idx = 0
     restriction_idx = 0
+    # for group in grouped_triples:
     parent_node = str(grouped_triples[0][0][0])
-    child_node = f'Restriction-{restriction_idx}'
-    edge = uri_or_literal_2label(grouped_triples[0][0][1])
-    graph_to_visualize.get("nodes").append({'id': child_node, 'label': child_node})
-    graph_to_visualize.get("edges").append({'from': child_node, 'to': parent_node,
-                                            'label': edge})
+    edge = ''
+    for s, p, o in grouped_triples[0]:
+        if isinstance(o, BNode) and p != RDF.first and p != RDF.rest:
+            edge += f'/{uri_or_literal_2label(p)}'
+            print(edge)
+        # if p == RDFS.subClassOf:
+        #     edge = uri_or_literal_2label(RDFS.subClassOf)
+        #     e, n = extract_property_value(knowledge_graph, o)
+        #     if isinstance(n, BNode):
+        #         edge += f'/{uri_or_literal_2label(e)}'
+        #
+        # if p in restriction_type:
+        #     if isinstance(o, BNode):
+        #         e, n = extract_property_value(knowledge_graph, o)
+        #         if e is None and n is None:
+        #             continue
+        #         edge = uri_or_literal_2label(e)
+        #         obj = uri_or_literal_2label(n)
+        #         print(obj, edge)
 
-    for s, p, o in grouped_triples[1]:
-        if ((p == RDF.first and not isinstance(o, BNode)) or p in collection_type or p in restriction_type
-                or p == OWL.onProperty):
-            print(s, p, o)
-            if p == OWL.onProperty:
-                edge = str(o)
-
-            if p in collection_type:
-                parent_node = child_node
-                child_node = f"{collection_type.get(p)[0]}-{collection_idx}"
-                collection_idx += 1
-                print(child_node)
-
-            if p in restriction_type:
-                parent_node = child_node
-                child_node = f'Restriction-{restriction_idx}'
-                restriction_idx += 1
-        # if p == OWL.intersectionOf:
-        #     parent_node = f"{collection_type.get(p)[0]}-{i}"
-        #     i += 1
-
-        # graph_to_visualize.get("nodes").append({'id': parent_node, 'label': parent_node})
-        # graph_to_visualize.get("edges").append({'from': str(x), 'to': str(parent_node),
-        #                                         'label': collection_type.get(p)[1]})
+            # if p in collection_type:
+        #     name, edge = collection_type.get(p)
+        #     child_node = f'{name}-{collection_idx}'
+        #     collection_idx += 1
+        #     graph_to_visualize.get("nodes").append({'id': child_node, 'label': child_node})
+        #     graph_to_visualize.get("edges").append({'from': child_node, 'to': parent_node,
+        #                                             'label': edge})
+        #     parent_node = child_node
+        # if p == RDF.first:
+        #     edge, obj = extract_property_value(knowledge_graph, o)
+        #     edge = uri_or_literal_2label(edge)
+        #     obj = uri_or_literal_2label(obj)
+        #     obj_id = f'{obj}_{random.randint(0, 1000000000000)}'
+        #
+        #     if isinstance(o, URIRef):
+        #         edge, obj = '', uri_or_literal_2label(o)
+        #         obj_id = f'{obj}_{random.randint(0, 1000000000000)}'
+        #
+        #     graph_to_visualize.get("nodes").append({'id': obj_id, 'label': obj})
+        #     graph_to_visualize.get("edges").append({'from': obj_id, 'to': parent_node,
+        #                                             'label': edge})
 
 
 def get_graph_to_visualize():
     get_all_classes(knowledge_graph)
     get_class_restrictions2(knowledge_graph)
-    # return graph_to_visualize
+    return graph_to_visualize
 
 
 def get_classes():

@@ -23,5 +23,15 @@ def recursive_pattern_matching(knowledge_graph: Graph, node: Node, result: []):
         recursive_pattern_matching(knowledge_graph, o, result)
 
 
+def extract_property_value(knowledge_graph: Graph, node: Node):
+    edge, n = None, None
+    for s, p, o in knowledge_graph.triples((node, None, None)):
+        if p == OWL.onProperty:
+            edge = o
+        if p in restriction_type:
+            n = o
+    return edge, n
+
+
 def get_collection_type(property):
     return collection_type.get(property)

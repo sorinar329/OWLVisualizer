@@ -9,7 +9,7 @@ from graph import graph_utility
 motion = "http://www.ease-crc.org/ont/mixing#WhirlstormMotion"
 motion2 = "http://www.ease-crc.org/ont/mixing#CircularMotion"
 knowledge_graph = Graph()
-knowledge_graph.parse("data/mixing.owl")
+knowledge_graph.parse("/home/mkuempel/workspace/OWLVisualizer/data/mixing.owl")
 
 
 class QueryBuilder:
