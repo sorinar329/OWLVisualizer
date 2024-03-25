@@ -28,8 +28,9 @@ def extract_property_value(knowledge_graph: Graph, node: Node):
     for s, p, o in knowledge_graph.triples((node, None, None)):
         if p == OWL.onProperty:
             edge = o
-        if p in restriction_type:
+        if p in restriction_type and isinstance(o, URIRef) or isinstance(o, Literal):
             n = o
+
     return edge, n
 
 
