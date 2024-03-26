@@ -1,0 +1,32 @@
+from rdflib import OWL, URIRef
+
+cardinality_types = {OWL.qualifiedCardinality: 'exactly', OWL.minQualifiedCardinality: 'min',
+                     OWL.maxQualifiedCardinality: 'max'}
+
+restriction_type = [OWL.hasValue, OWL.someValuesFrom, OWL.allValuesFrom]
+
+collection_type = {OWL.intersectionOf: 'Intersection', OWL.unionOf: 'Union'}
+
+
+def get_cardinality_name(p: URIRef):
+    return cardinality_types.get(p)
+
+
+def get_restriction_name(p: URIRef):
+    return restriction_type.get(p)
+
+
+def get_collection_name(p: URIRef):
+    return collection_type.get(p)
+
+
+def is_collection(p: URIRef):
+    return p in collection_type
+
+
+def is_restriction(p: URIRef):
+    return p in restriction_type
+
+
+def is_cardinality(p: URIRef):
+    return p in cardinality_types
