@@ -100,7 +100,4 @@ def get_graph_to_visualize():
     return graph_to_visualize
 
 
-def get_classes():
-    return get_all_classes(knowledge_graph)
-
 # get_graph_to_visualize()
