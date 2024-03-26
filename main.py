@@ -1,4 +1,3 @@
-import rdflib
 from flask import Flask, render_template, jsonify, request
 import graph.graph
 import graph.coloring
@@ -18,6 +17,7 @@ def get_graph_data_rdf():
     graph_visualize = graph.graph.get_graph_to_visualize()
     graph.coloring.color_classes(graph_visualize)
     graph.coloring.color_parameters(graph_visualize)
+    graph.coloring.color_edges(graph_visualize)
     return jsonify({'nodes': graph_visualize.get("nodes"), 'edges': graph_visualize.get("edges")})
 
 

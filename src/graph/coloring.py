@@ -1,4 +1,6 @@
 from rdflib import OWL
+
+
 def color_classes(graph: dict):
     nodes = [n for n in graph.get("nodes") if 'Task' in n.get("id")]
     for task in nodes:
@@ -19,3 +21,8 @@ def color_parameters(graph: dict):
             child = edge.get("from")
             node = [n for n in graph.get("nodes") if n.get("id") == child][0]
             node.update({'color': {"background": "yellow", "border": "black"}})
+
+
+def color_edges(graph: dict):
+    for edge in graph.get('edges'):
+        edge.update({'color': {'color': 'black'}})
