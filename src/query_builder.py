@@ -9,7 +9,7 @@ from graph import graph_utility
 motion = "http://www.ease-crc.org/ont/mixing#WhirlstormMotion"
 motion2 = "http://www.ease-crc.org/ont/mixing#CircularMotion"
 knowledge_graph = Graph()
-knowledge_graph.parse("/home/mkuempel/workspace/OWLVisualizer/data/mixing.owl")
+knowledge_graph.parse("data/mixing.owl")
 
 
 class QueryBuilder:
@@ -62,7 +62,8 @@ class QueryBuilder:
                 else:
                     type_s = 'Other'
 
-                subject = {'iri': str(triple[0]), 'label': graph_utility.uri_or_literal_2label(triple[0]),
+                subject = {'iri': str(triple[0]),
+                           'label': graph_utility.uri_or_literal_2label(knowledge_graph, triple[0]),
                            'type': type_s, 'predicates': []}
                 mocked_solution['subjects'].append(subject)
                 s = subject
@@ -84,19 +85,21 @@ class QueryBuilder:
                     type_p = 'SubClassOf'
                 elif pred == RDF.type:
                     type_p = 'Is a'
-                elif list(self.kg.objects(pred, RDF.type))[0] == OWL.DatatypeProperty:
-                    type_p = 'Attributes'
-                elif list(self.kg.objects(pred, RDF.type))[0] == OWL.ObjectProperty:
-                    type_p = 'Relations'
+                # elif list(self.kg.objects(pred, RDF.type))[0] == OWL.DatatypeProperty:
+                #     type_p = 'Attributes'
+                # elif list(self.kg.objects(pred, RDF.type))[0] == OWL.ObjectProperty:
+                #     type_p = 'Relations'
                 else:
                     type_p = 'Other'
-                predicate = {'iri': str(triple[1]), 'label': graph_utility.uri_or_literal_2label(triple[1]),
+                predicate = {'iri': str(triple[1]),
+                             'label': graph_utility.uri_or_literal_2label(knowledge_graph, triple[1]),
                              'type': type_p, 'objects': []}
                 s['predicates'].append(predicate)
                 p = predicate
             else:
                 p = p[0]
-            obj = {'iri': str(triple[2]), 'label': graph_utility.uri_or_literal_2label(triple[2]), 'type': 'Classes'}
+            obj = {'iri': str(triple[2]), 'label': graph_utility.uri_or_literal_2label(knowledge_graph, triple[2]),
+                   'type': 'Classes'}
             p['objects'].append(obj)
         return mocked_solution
 
@@ -153,7 +156,7 @@ suggestions = {'subject': [anotherFriend]}
 #             print(o['iri'])
 
 
-suggest = get_query_builder().mock_suggestion2()
+# suggest = get_query_builder().mock_suggestion2()
 #
 # for sub in suggest['subjects']:
 #     print(f'Subject is:' + sub['iri'])
