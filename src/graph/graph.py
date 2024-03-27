@@ -1,5 +1,6 @@
 from rdflib import Graph, OWL, RDFS, RDF
 from rdflib.term import BNode, URIRef, Literal
+
 from src.graph.graph_utility import recursive_pattern_matching, extract_property_value, uri_or_literal_2label, \
     extract_cardinality_types
 from src.graph.types import get_cardinality_name, get_collection_name, is_restriction, \
@@ -7,7 +8,7 @@ from src.graph.types import get_cardinality_name, get_collection_name, is_restri
 import random
 
 knowledge_graph = Graph()
-knowledge_graph.parse("data/mixing.owl")
+knowledge_graph.parse("data/food_cutting.owl")
 
 graph_to_visualize = {'nodes': [], 'edges': []}
 
@@ -19,9 +20,25 @@ def get_all_classes(kg: Graph):
             continue
         nodes.add(subclass)
         nodes.add(subclass)
+
         graph_to_visualize.get("edges").append({'from': str(subclass), 'to': str(superclass), 'label': 'subClassOf'})
     for node in nodes:
+        print(uri_or_literal_2label(kg, node))
         graph_to_visualize.get("nodes").append({'id': str(node), 'label': uri_or_literal_2label(kg, node)})
+
+
+def get_instances(kg: Graph):
+    nodes = set()
+    for instance, _, cls in kg.triples((None, RDF.type, OWL.NamedIndividual)):
+        nodes.add(instance)
+
+    for node in nodes:
+        for _, _, o in kg.triples((node, RDF.type, None)):
+            if o == OWL.NamedIndividual or URIRef('http://www.w3.org/2003/11/swrl#Imp'):
+                continue
+            graph_to_visualize.get("edges").append({'from': str(node), 'to': str(o), 'label': 'is a'})
+            graph_to_visualize.get("nodes").append({'id': str(node), 'label': uri_or_literal_2label(kg, node),
+                                                    'shape': 'box'})
 
 
 def get_class_restrictions2(knowledge_graph):
@@ -40,7 +57,7 @@ def get_class_restrictions2(knowledge_graph):
         grouped_triples.append(triples)
     collection_idx = 0
 
-    for group in grouped_triples:
+    for group in grouped_triples[:1]:
         parent_node, edge, child_node = '', '', ''
         for s, p, o in group:
             if p == RDFS.subClassOf or p == OWL.equivalentClass:
@@ -96,8 +113,12 @@ def get_class_restrictions2(knowledge_graph):
 
 def get_graph_to_visualize():
     get_all_classes(knowledge_graph)
+    get_instances(knowledge_graph)
     get_class_restrictions2(knowledge_graph)
     return graph_to_visualize
 
+
+def get_knowledge_graph():
+    return knowledge_graph
 
 # get_graph_to_visualize()

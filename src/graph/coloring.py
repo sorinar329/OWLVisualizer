@@ -1,17 +1,18 @@
-from rdflib import OWL
+from rdflib import Graph
+from src.graph.graph_utility import get_all_actions_tasks, get_all_dispositions, get_all_tools
+
+"""
+Using the following color palette: https://coolors.co/palette/ee6055-60d394-aaf683-ffd97d-ff9b85
+"""
 
 
 def color_classes(graph: dict):
-    nodes = [n for n in graph.get("nodes") if 'Task' in n.get("id")]
-    for task in nodes:
-        task.update({'color': {"background": "lime", "border": "black"}})
-
     nodes = [n for n in graph.get("nodes") if 'Motion' in n.get("id")]
     for motion in nodes:
-        motion.update({'color': {"background": "orangered", "border": "black"}})
+        motion.update({'color': {"background": "#FF9B85", "border": "black"}})
     nodes = [n for n in graph.get("nodes") if 'Motion' not in n.get("id") and 'Task' not in n.get("id")]
     for node in nodes:
-        node.update({"color": "lightblue"})
+        node.update({"color": "#60D394", "border": "black"})
 
 
 def color_parameters(graph: dict):
@@ -20,9 +21,45 @@ def color_parameters(graph: dict):
         if relation != 'subClassOf' and relation != 'owl:intersectionOf':
             child = edge.get("from")
             node = [n for n in graph.get("nodes") if n.get("id") == child][0]
-            node.update({'color': {"background": "yellow", "border": "black"}})
+            node.update({'color': {"background": "#FFD97D", "border": "black"}})
 
 
 def color_edges(graph: dict):
     for edge in graph.get('edges'):
         edge.update({'color': {'color': 'black'}})
+
+
+def color_tasks_actions(kg: Graph, graph: dict):
+    classes = set()
+    get_all_actions_tasks(kg, classes)
+    nodes = graph.get("nodes")
+    nodes = [x for x in nodes if x.get('id') in classes]
+    for cls in nodes:
+        cls.update({'color': {"background": "#AAF683", "border": "black"}})
+
+
+def color_dispositions(kg: Graph, graph: dict):
+    classes = set()
+    get_all_dispositions(kg, classes)
+    nodes = graph.get("nodes")
+    nodes = [x for x in nodes if x.get('id') in classes]
+    for cls in nodes:
+        cls.update({'color': {"background": "#EE6055", "border": "black"}})
+
+
+def color_tools(kg: Graph, graph: dict):
+    classes = set()
+    get_all_tools(kg, classes)
+    nodes = graph.get("nodes")
+    nodes = [x for x in nodes if x.get('id') in classes]
+    for cls in nodes:
+        cls.update({'color': {"background": "#FF9B85", "border": "black"}})
+
+
+def color_instances(graph: dict):
+    instances = [x.get("from") for x in graph.get("edges") if x.get("label") == 'is a']
+    nodes = graph.get("nodes")
+    nodes = [x for x in nodes if x.get('id') in instances]
+    for instance in nodes:
+        instance.update(
+            {'color': {"background": "#EE6055", "border": "black", "borderWidth": 1, "borderWidthSelected": 3}})

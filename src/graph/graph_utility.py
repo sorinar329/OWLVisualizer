@@ -4,6 +4,10 @@ from typing import Union
 
 from src.graph.types import is_cardinality, is_restriction, is_collection
 
+task = URIRef('http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#Task')
+disposition = URIRef('http://www.ease-crc.org/ont/SOMA.owl#Disposition')
+tool = URIRef('http://www.ease-crc.org/ont/food_cutting#Tool')
+
 
 def uri_or_literal_2label(knowledge_graph: Graph, node: Union[URIRef, Literal, Node, str]) -> str:
     for label in knowledge_graph.objects(node, RDFS.label):
@@ -46,3 +50,24 @@ def extract_cardinality_types(knowledge_graph: Graph, node: Node):
         if p == OWL.onClass:
             cls = o
     return edge, cardinality, cls
+
+
+def get_all_actions_tasks(knowledge_graph: Graph, classes: set, parent_class=task):
+    for triple in knowledge_graph.triples((None, RDFS.subClassOf, parent_class)):
+        classes.add(str(triple[0]))
+        classes.add(str(triple[2]))
+        get_all_actions_tasks(knowledge_graph, classes, parent_class=triple[0])
+
+
+def get_all_dispositions(knowledge_graph: Graph, classes: set, parent_class=disposition):
+    for triple in knowledge_graph.triples((None, RDFS.subClassOf, parent_class)):
+        classes.add(str(triple[0]))
+        classes.add(str(triple[2]))
+        get_all_dispositions(knowledge_graph, classes, triple[0])
+
+
+def get_all_tools(knowledge_graph: Graph, classes: set, parent_class=tool):
+    for triple in knowledge_graph.triples((None, RDFS.subClassOf, parent_class)):
+        classes.add(str(triple[0]))
+        classes.add(str(triple[2]))
+        get_all_dispositions(knowledge_graph, classes, triple[0])

@@ -7,6 +7,7 @@ from urllib.parse import unquote
 app = Flask(__name__)
 qb = query_builder.get_query_builder()
 
+
 @app.route('/')
 def index():
     return render_template("index.html")
@@ -15,9 +16,14 @@ def index():
 @app.route('/get_graph_data_rdf')
 def get_graph_data_rdf():
     graph_visualize = graph.graph.get_graph_to_visualize()
+    kg = graph.graph.get_knowledge_graph()
     graph.coloring.color_classes(graph_visualize)
     graph.coloring.color_parameters(graph_visualize)
     graph.coloring.color_edges(graph_visualize)
+    graph.coloring.color_tasks_actions(kg, graph_visualize)
+    graph.coloring.color_dispositions(kg, graph_visualize)
+    graph.coloring.color_tools(kg, graph_visualize)
+    graph.coloring.color_instances(graph_visualize)
     return jsonify({'nodes': graph_visualize.get("nodes"), 'edges': graph_visualize.get("edges")})
 
 
