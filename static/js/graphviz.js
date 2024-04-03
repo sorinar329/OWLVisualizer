@@ -3,7 +3,16 @@ function viz_graph() {
         .then(response => response.json())
         .then(data => {
             const container = document.getElementById('mynetwork');
-            const options = {};
+            const options = {
+                physics: {
+                    stabilization: {iterations: 1400},
+
+                },
+                layout: {
+                    improvedLayout: false
+                }
+
+            };
             var network = new vis.Network(container, data, options);
 
 
@@ -15,7 +24,6 @@ function viz_graph() {
 
             function redrawAll() {
                 var container = document.getElementById("mynetwork");
-                var options = {}
                 var data = {nodes: nodesDataset, edges: edgesDataset};
 
                 network = new vis.Network(container, data, options);
