@@ -1,6 +1,6 @@
 from rdflib import Graph, URIRef, RDF, OWL, BNode
 import rdflib.util
-from graph import graph_utility
+from src.graph import graph_utility
 
 motion = "http://www.ease-crc.org/ont/mixing#WhirlstormMotion"
 #knowledge_graph = Graph()

@@ -1,15 +1,17 @@
+var network;
+var nodesDataset;
 function viz_graph() {
     fetch('/get_graph_data_rdf')
         .then(response => response.json())
         .then(data => {
             const container = document.getElementById('mynetwork');
             const options = {};
-            var network = new vis.Network(container, data, options);
+            network = new vis.Network(container, data, options);
 
 
             var highlightActive = false;
             const nodesDatasetOriginal = new vis.DataSet(data.nodes)
-            var nodesDataset = new vis.DataSet(data.nodes);
+            nodesDataset = new vis.DataSet(data.nodes);
             var edgesDataset = new vis.DataSet(data.edges);
             const allNodesOriginal = nodesDatasetOriginal.get({returnType: "Object"})
 
