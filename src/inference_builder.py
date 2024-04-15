@@ -26,13 +26,13 @@ def get_tasks():
     return task_list
 
 
-def get_ingredients(knowledge_graph, superclass):
+def get_ingredients(superclass, knowledge_graph=knowledge_graph):
     ingredients_list = []
 
     for subj, obj in knowledge_graph.subject_objects(predicate=RDFS.subClassOf):
         if superclass in obj:
             ingredients_list.append(str(subj))
-            ingredients_list.extend(get_ingredients(knowledge_graph, subj))
+            ingredients_list.extend(get_ingredients(subj))
 
     return ingredients_list
 
@@ -51,13 +51,31 @@ def check_if_leaf(kg, cls):
 
 def get_ingredients_leaf():
     leaf = []
-    for item in get_ingredients(knowledge_graph, superclass="http://www.ease-crc.org/ont/mixing#Ingredient"):
+    for item in get_ingredients(superclass="http://www.ease-crc.org/ont/mixing#Ingredient"):
         leaf.append(check_if_leaf(knowledge_graph, item))
 
     filtered_leaf = list(filter(lambda x: x is not None, leaf))
     return filtered_leaf
 
 
-#print(get_ingredients_leaf())
+def get_container(superclass, kg=knowledge_graph):
+    container_list = []
+
+    for subj, obj in knowledge_graph.subject_objects(predicate=RDFS.subClassOf):
+        if superclass in obj:
+            container_list.append(str(subj))
+            container_list.extend(get_container(subj))
+
+    return container_list
+
+def get_container_leaf():
+    leaf = []
+    for item in get_container(superclass="http://www.ease-crc.org/ont/SOMA.owl#TableWare"):
+        leaf.append(check_if_leaf(knowledge_graph, item))
+
+    filtered_leaf = list(filter(lambda x: x is not None, leaf))
+    return filtered_leaf
+
+print(get_container_leaf())
 
 
