@@ -5,6 +5,7 @@ import os
 from rdflib import Graph, OWL, RDFS, RDF
 from src.graph import coloring
 from src.graph import graph
+from src import inference_builder
 #import query_builder
 
 app = Flask(__name__)
@@ -89,6 +90,13 @@ def upload_file_graph():
     file.save(os.path.join(folder_path, file.filename))
 
     return jsonify({'filename': file.filename})
+
+@app.route("/task_ingredients")
+def get_tasks_and_ingredients():
+    print(inference_builder.get_ingredients_leaf())
+    return jsonify({"tasks": inference_builder.get_tasks(), "ingredients": inference_builder.get_ingredients_leaf()})
+    #return jsonify({"tasks": ["Stirring", "Mixing"], "ingrdients": ["A", "B"]})
+
 
 if __name__ == '__main__':
     app.run()

@@ -7,6 +7,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css"/>
     <!-- Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
     <style>
         #mynetwork {
             width: 100%;
@@ -62,14 +63,13 @@
                 <div class="form-group">
                     <label for="taskSelect">Tasks</label>
                     <select class="form-control" id="taskSelect">
-                        <option name="Mix">Mixing</option>
-                        <option name="Stirring">Stirring</option>
+
                     </select>
                 </div>
                 <div class="form-group">
                     <label for="ingredientSelect">Ingredients</label>
                     <select class="form-control" id="ingredientSelect">
-                        <option name="Egg">Egg</option>
+
                     </select>
                     <button type="button" class="btn btn-sm btn-secondary mt-2" id="addIngredientField">+</button>
                 </div>
@@ -161,7 +161,7 @@
 <div id="mynetwork"></div>
 
 <!-- Bootstrap JS and jQuery -->
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
@@ -171,23 +171,19 @@
 
 <script>
 
-    document.addEventListener('DOMContentLoaded', function () {
-    const addIngredientButton = document.getElementById('addIngredientField');
-    const ingredientSelectContainer = document.querySelector('.modal-body .form-group:nth-child(2)');
+    $(document).ready(function() {
+        // Event listener for the "+" button
+        $('#addIngredientField').click(function() {
+            // Clone the original ingredient select field
+            var newSelectField = $('#ingredientSelect').clone();
 
-    if (addIngredientButton && ingredientSelectContainer) {
-        addIngredientButton.addEventListener('click', function () {
-            const newIngredientSelect = document.createElement('select');
-            newIngredientSelect.classList.add('form-control', 'mt-2');
-            newIngredientSelect.innerHTML = `
-                <option value="">Select Ingredient</option>
-                <option value="Flour">Flour</option>
-                <option value="Sugar">Sugar</option>
-            `;
-            ingredientSelectContainer.appendChild(newIngredientSelect);
+            // Clear the selected value in the cloned select field
+            newSelectField.val('');
+
+            // Append the cloned select field to the modal body
+            $('.modal-body').append(newSelectField);
         });
-    }
-});
+    });
 
     document.addEventListener('DOMContentLoaded', function () {
         const select1 = document.getElementById('select1');
@@ -370,6 +366,30 @@ function updateGraphAndTable(graphData, tableData) {
     }, 100);
 }
 
+jQuery(document).ready(function($) {
+    // Function to fetch and populate tasks
+    $.ajax({
+        url: '/task_ingredients',
+        type: 'GET',
+        success: function (data) {
+            var taskSelect = $('#taskSelect');
+            $.each(data.tasks, function (index, task) {
+                taskSelect.append($('<option>', {
+                    value: task,
+                    text: task
+                }));
+            });
+            var ingredientSelect = $('#ingredientSelect');
+            $.each(data.ingredients, function (index, ingredient) {
+                ingredientSelect.append($("<option>", {
+                    value: ingredient,
+                    text: ingredient
+
+                }));
+            });
+        }
+    });
+});
 
 
 </script>
