@@ -76,6 +76,26 @@ def get_container_leaf():
     filtered_leaf = list(filter(lambda x: x is not None, leaf))
     return filtered_leaf
 
-print(get_container_leaf())
 
+
+
+def get_tool(superclass, kg=knowledge_graph):
+    tool_list = []
+    for item in superclass:
+        for subj, obj in knowledge_graph.subject_objects(predicate=RDFS.subClassOf):
+            if item in obj:
+                tool_list.append(str(subj))
+                tool_list.extend(get_container(subj))
+
+    return tool_list
+
+
+
+def get_tool_leaf():
+    leaf = []
+    for item in get_tool(["Cutlery", "KitchenTool"]):
+        leaf.append(check_if_leaf(knowledge_graph, item))
+
+    filtered_leaf = list(filter(lambda x: x is not None, leaf))
+    return filtered_leaf
 
