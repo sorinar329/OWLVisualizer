@@ -25,9 +25,17 @@ def uri_or_literal_2label(knowledge_graph: Graph, node: Union[URIRef, Literal, N
 def recursive_pattern_matching(knowledge_graph: Graph, node: Node, result: []):
     for s, p, o in knowledge_graph.triples((node, None, None)):
         if isinstance(p, URIRef) and is_cardinality(p) or is_collection(p) or is_restriction(p) or p == RDF.first:
+            # print(s, p, o)
             result.extend([[s, p, o]])
         if isinstance(o, BNode):
             recursive_pattern_matching(knowledge_graph, o, result)
+
+
+def class_has_restrictions(knowledge_graph: Graph, cls: Node, property: URIRef):
+    for node in knowledge_graph.objects(cls, property):
+        if isinstance(node, BNode):
+            return True
+    return False
 
 
 def extract_property_value(knowledge_graph: Graph, node: Node):

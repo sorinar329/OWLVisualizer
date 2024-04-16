@@ -1,7 +1,7 @@
 from flask import Flask, render_template, jsonify, request
 import graph.graph
 import graph.coloring
-import query_builder
+from query_builder import query_builder
 from urllib.parse import unquote
 
 app = Flask(__name__)
@@ -15,8 +15,11 @@ def index():
 
 @app.route('/get_graph_data_rdf')
 def get_graph_data_rdf():
-    graph_visualize = graph.graph.get_graph_to_visualize()
-    kg = graph.graph.get_knowledge_graph()
+    kg_instance = graph.graph.KnowledgeGraph('data/food_cutting.owl')
+    graph_visualize = kg_instance.get_graph_to_visualize()
+    print(f"Num nodes: {len(graph_visualize.get('nodes'))}")
+    print(f"Num edges: {len(graph_visualize.get('edges'))}")
+    kg = kg_instance.get_rdflib_graph()
     graph.coloring.color_classes(graph_visualize)
     graph.coloring.color_parameters(graph_visualize)
     graph.coloring.color_edges(graph_visualize)
@@ -31,7 +34,6 @@ def get_graph_data_rdf():
 def suggest_classes():
     graph_visualize = graph.graph.get_graph_to_visualize()
     classes = [i.get('id') for i in graph_visualize.get("nodes")]
-    print(classes)
     return jsonify(classes)
 
 

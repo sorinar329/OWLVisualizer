@@ -16,13 +16,9 @@ def color_classes(graph: dict):
 
 
 def color_parameters(graph: dict):
-    for edge in graph.get('edges'):
-        relation = edge.get('label')
-        if relation != 'subClassOf' and relation != 'owl:intersectionOf':
-            child = edge.get("from")
-            node = [n for n in graph.get("nodes") if n.get("id") == child][0]
+    for node in graph.get("nodes"):
+        if node.get('id').startswith('Res'):
             node.update({'color': {"background": "#FFD97D", "border": "black"}})
-
 
 def color_edges(graph: dict):
     for edge in graph.get('edges'):
