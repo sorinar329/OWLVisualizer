@@ -6,6 +6,8 @@ from src.graph.graph_utility import recursive_pattern_matching, extract_property
     extract_cardinality_types
 from src.graph.types import get_cardinality_name, get_collection_name, is_restriction, \
     is_cardinality, is_collection, get_restriction_name
+import src.graph.coloring as coloring
+
 import random
 
 
@@ -13,8 +15,12 @@ class KnowledgeGraph:
     def __init__(self, knowledge_graph_file: str):
         self.kg = rdflib.Graph().parse(knowledge_graph_file)
         self.graph_to_visualize = {'nodes': [], 'edges': []}
+        self.dominant_namespace = ''
+
+        self._set_dominant_namespace()
         self._add_class_hierarchy()
         self._add_class_restrictions()
+        self._color_graph()
 
     def _add_node(self, node_id: str):
         label = uri_or_literal_2label(self.kg, node_id)
@@ -103,6 +109,46 @@ class KnowledgeGraph:
 
     def get_rdflib_graph(self):
         return self.kg
+
+    def _color_graph(self):
+        coloring.color_classes(self.graph_to_visualize)
+        coloring.color_parameters(self.graph_to_visualize)
+        coloring.color_edges(self.graph_to_visualize)
+        coloring.color_tasks_actions(self.kg, self.graph_to_visualize)
+        coloring.color_dispositions(self.kg, self.graph_to_visualize)
+        coloring.color_tools(self.kg, self.graph_to_visualize)
+        coloring.color_instances(self.graph_to_visualize)
+
+    def _set_dominant_namespace(self):
+        iris = []
+        for s, p, o in self.kg.triples((None, RDFS.subClassOf, None)):
+            if isinstance(s, BNode) or isinstance(o, BNode):
+                continue
+            subject_iri, object_iri = str(s), str(o)
+            if '#' in subject_iri:
+                base_iri = subject_iri.split('#')[0] + '#'
+                iris.append(base_iri)
+            else:
+                last_slash_index = subject_iri.rfind('/')
+                base_iri = subject_iri[:last_slash_index] + '/'
+                iris.append(base_iri)
+            if '#' in object_iri:
+                base_iri = object_iri.split('#')[0] + '#'
+                iris.append(base_iri)
+            else:
+                last_slash_index = object_iri.rfind('/')
+                base_iri = object_iri[:last_slash_index] + '/'
+                iris.append(base_iri)
+
+        count = {}
+        for iri in iris:
+            if iri in count:
+                count[iri] += 1
+            else:
+                count[iri] = 1
+
+        self.dominant_namespace = max(count, key=lambda key: count[key])
+
 
 # def get_instances(kg: Graph):
 #     nodes = set()

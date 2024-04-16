@@ -1,6 +1,5 @@
 from flask import Flask, render_template, jsonify, request
 import graph.graph
-import graph.coloring
 from query_builder import query_builder
 from urllib.parse import unquote
 
@@ -19,14 +18,6 @@ def get_graph_data_rdf():
     graph_visualize = kg_instance.get_graph_to_visualize()
     print(f"Num nodes: {len(graph_visualize.get('nodes'))}")
     print(f"Num edges: {len(graph_visualize.get('edges'))}")
-    kg = kg_instance.get_rdflib_graph()
-    graph.coloring.color_classes(graph_visualize)
-    graph.coloring.color_parameters(graph_visualize)
-    graph.coloring.color_edges(graph_visualize)
-    graph.coloring.color_tasks_actions(kg, graph_visualize)
-    graph.coloring.color_dispositions(kg, graph_visualize)
-    graph.coloring.color_tools(kg, graph_visualize)
-    graph.coloring.color_instances(graph_visualize)
     return jsonify({'nodes': graph_visualize.get("nodes"), 'edges': graph_visualize.get("edges")})
 
 
