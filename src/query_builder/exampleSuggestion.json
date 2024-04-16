@@ -1,0 +1,15 @@
+{
+    "subjects": [{
+        "iri": "http://bla#Charlie",
+        "label": "Charlie",
+        "predicates": [{
+            "iri": "hasFriendRelation",
+            "label": "hasFriend",
+            "objects": [
+                {"iri": "http://bla#Alice", "label": "Alice"},
+                {"iri": "http://bla#Bob", "label": "Bob"}
+            ]
+        }
+          ]
+    }]
+}
