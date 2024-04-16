@@ -70,11 +70,14 @@ def get_container(superclass, kg=knowledge_graph):
 
 def get_container_leaf():
     leaf = []
+    leaf_label = []
     for item in get_container(superclass="http://www.ease-crc.org/ont/SOMA.owl#TableWare"):
         leaf.append(check_if_leaf(knowledge_graph, item))
 
     filtered_leaf = list(filter(lambda x: x is not None, leaf))
-    return filtered_leaf
+    for i in filtered_leaf:
+        leaf_label.append(i.split("#")[1])
+    return filtered_leaf, leaf_label
 
 
 
@@ -93,9 +96,20 @@ def get_tool(superclass, kg=knowledge_graph):
 
 def get_tool_leaf():
     leaf = []
+    leaf_label = []
     for item in get_tool(["Cutlery", "KitchenTool"]):
         leaf.append(check_if_leaf(knowledge_graph, item))
 
     filtered_leaf = list(filter(lambda x: x is not None, leaf))
-    return filtered_leaf
+    for i in filtered_leaf:
+        leaf_label.append(i.split("#")[1])
+    return filtered_leaf, leaf_label
 
+def generate_task_tree():
+    first_entry = {"col1": "1", "col2": "Pick up any Tool", "col3": "MixingTool: " + str(get_tool_leaf()[1])}
+    second_entry = { 'col1': '2.', 'col2': 'Go to the Container', 'col3': "Container: " + str(get_container_leaf()[1])}
+    task_list = [first_entry, second_entry]
+
+    print(task_list)
+
+generate_task_tree()
