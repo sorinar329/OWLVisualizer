@@ -49,7 +49,7 @@
             Custom Modal
         </button>
 
-        <!-- Custom Modal -->
+<!-- INFERENCE QUERY -->
 <div class="modal fade" id="customModal" tabindex="-1" role="dialog" aria-labelledby="customModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -81,7 +81,7 @@
         </div>
     </div>
 </div>
-        <!-- New Modal for Graph and Table -->
+<!-- New Modal for Graph and Table -->
 <div class="modal fade" id="graphTableModal" tabindex="-1" role="dialog" aria-labelledby="graphTableModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
@@ -124,7 +124,7 @@
         </div>
     </div>
 </nav>
-<!-- Modal -->
+<!-- QUERY BUILDER -->
 <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
      aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
@@ -171,19 +171,6 @@
 
 <script>
 
-    $(document).ready(function() {
-        // Event listener for the "+" button
-        $('#addIngredientField').click(function() {
-            // Clone the original ingredient select field
-            var newSelectField = $('#ingredientSelect').clone();
-
-            // Clear the selected value in the cloned select field
-            newSelectField.val('');
-
-            // Append the cloned select field to the modal body
-            $('.modal-body').append(newSelectField);
-        });
-    });
 
     document.addEventListener('DOMContentLoaded', function () {
         const select1 = document.getElementById('select1');
@@ -344,17 +331,64 @@ jQuery(document).ready(function($) {
             $.each(data.tasks, function (index, task) {
                 taskSelect.append($('<option>', {
                     value: task,
-                    text: task
+                    text: task.split("#")[1]
                 }));
             });
             var ingredientSelect = $('#ingredientSelect');
             $.each(data.ingredients, function (index, ingredient) {
                 ingredientSelect.append($("<option>", {
                     value: ingredient,
-                    text: ingredient
+                    text: ingredient.split("#")[1]
 
                 }));
             });
+        }
+    });
+});
+
+
+document.getElementById('addIngredientField').addEventListener('click', function() {
+        var originalSelect = document.getElementById('ingredientSelect');
+        var newSelect = originalSelect.cloneNode(true);
+        newSelect.id = 'ingredientSelect' + Math.floor(Math.random() * 1000); // Generate unique ID for the new select
+        originalSelect.parentNode.appendChild(newSelect);
+    });
+
+   $(document).on('click', '#customModal .modal-footer .btn-primary', function() {
+    var task = $("#taskSelect").val();
+    console.log("Task:", task);
+
+    // Retrieve selected values from all ingredient select fields
+    var ingredients = [];
+    $('.modal-body .form-group select').each(function() {
+        var ingredient = $(this).val();
+        if (ingredient && ingredient !== task) { // Add a check to ensure task is not added to ingredients
+                        ingredients.push(ingredient);
+        }
+    });
+
+    // Log the ingredients array to check if task is included
+    console.log("Ingredients:", ingredients);
+
+    // Create a data object to send to the backend
+    var data = {
+        task: task,
+        ingredients: ingredients
+    };
+
+    // Send an AJAX POST request to your Flask backend
+    $.ajax({
+        type: "POST",
+        url: "/data",
+        data: JSON.stringify(data),
+        contentType: "application/json",
+        success: function(response) {
+            // Handle the response from the server if needed
+            console.log(response);
+        },
+        error: function(err) {
+            // Handle errors if any
+            console.error(err);
         }
     });
 });
