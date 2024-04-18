@@ -141,6 +141,7 @@ def get_data():
     task = data.get('task')
     ingredients = data.get('ingredients')
     print(task, ingredients)
+
     #task = "http://www.ease-crc.org/ont/mixing#BeatingTask"
     # ingredients = ["http://www.ease-crc.org/ont/mixing#Milk", "http://www.ease-crc.org/ont/mixing#Butter", "http://www.ease-crc.org/ont/mixing#Flour"]
     #ingredients = ["http://www.ease-crc.org/ont/mixing#Butter"]
