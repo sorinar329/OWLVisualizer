@@ -51,58 +51,57 @@ class KnowledgeGraph:
         classes_with_restrictions.extend([[s, p, o] for (s, p, o)
                                           in self.kg.triples((None, OWL.equivalentClass, None))
                                           if isinstance(o, BNode)])
-        grouped_triples = []
-
         for s, p, o in classes_with_restrictions:
-            triples = [[s, p, o]]
-            recursive_pattern_matching(self.kg, o, triples)
+            self._handle_bnode(parent_node=o, parent_id=str(s), edge_label=uri_or_literal_2label(self.kg, p))
 
-            grouped_triples.append(triples)
-        collection_idx = 0
-
-        for group in grouped_triples:
-            parent_node, edge = '', ''
-            for s, p, o in group:
-                if p == RDFS.subClassOf or p == OWL.equivalentClass:
-                    parent_node = str(s)
-                    edge = uri_or_literal_2label(self.kg, p)
-                elif is_restriction(p):
-                    e, n = extract_property_value(self.kg, s)
-                    if e is not None and n is not None:
-                        child_node = f'Res-{random.randint(0, 1000000000000)}#{n}'
-                        edge += f'/{uri_or_literal_2label(self.kg, e)} {get_restriction_name(p)}'
-                        if edge[0] == '/':
-                            edge = edge[1:]
-                        self._add_node(node_id=child_node)
-                        self._add_edge(parent_id=parent_node, child_id=child_node, edge_label=edge)
-                        edge = ''
-                    else:
-                        edge += f'/{uri_or_literal_2label(self.kg, e)} '
-                        edge += f'{uri_or_literal_2label(self.kg, get_restriction_name(p))}'
-                elif is_cardinality(p):
-                    cardinality_property, cardinality, cls = extract_cardinality_types(self.kg, s)
-                    edge += f'{get_cardinality_name(cardinality_property)} {cardinality}'
-                    if edge[0] == '/':
-                        edge = edge[1:]
-                    child_node = f'Res-{random.randint(0, 1000000000000)}#{cls}'
-                    self._add_node(node_id=child_node)
-                    self._add_edge(parent_id=parent_node, child_id=child_node, edge_label=edge)
-                    edge = ''
-                elif is_collection(p):
-                    name = get_collection_name(p)
-                    child_node = f'Res#{name}-{collection_idx}'
-                    self._add_node(node_id=child_node)
-                    self._add_edge(parent_id=parent_node, child_id=child_node, edge_label=edge)
-                    collection_idx += 1
-                    parent_node = child_node
-                    edge = ''
-                elif p == RDF.first and isinstance(o, URIRef) or isinstance(o, Literal):
-                    edge, child_node = '', o
-                    child_node = f'Res-{random.randint(0, 1000000000000)}#{child_node}'
-                    self._add_node(node_id=child_node)
-                    self._add_edge(parent_id=str(parent_node), child_id=child_node, edge_label=edge)
+    def _list_recursion(self, parent_node, parent_id, edge_label):
+        for triple in self.kg.triples((parent_node, None, None)):
+            if triple[1] == RDF.first:
+                if isinstance(triple[2], BNode):
+                    self._handle_bnode(parent_node=triple[2], parent_id=parent_id, edge_label=edge_label)
                 else:
-                    continue
+                    edge_label, child_node = '', f'Res-{random.randint(0, 1000000000000)}#{triple[2]}'
+                    self._add_node(node_id=child_node)
+                    self._add_edge(parent_id=str(parent_id), child_id=child_node, edge_label=edge_label)
+            else:
+                self._list_recursion(parent_node=triple[2], parent_id=parent_id, edge_label=edge_label)
+
+    def _handle_bnode(self, parent_node, parent_id, edge_label):
+        child_id = ''
+        child_node = None
+        for s, p, o in self.kg.triples((parent_node, None, None)):
+            assert isinstance(p, URIRef)
+            if p == OWL.complementOf:
+                edge_label += ' not'
+                child_id = f'Res-{random.randint(0, 1000000000000)}#{o}'
+
+            elif is_restriction(p):
+                edge_label += f' {get_restriction_name(p)}'
+                if isinstance(o, BNode):
+                    self._handle_bnode(parent_node=o, parent_id=parent_id, edge_label=edge_label)
+                else:
+                    child_id = f'Res-{random.randint(0, 1000000000000)}#{o}'
+            elif is_cardinality(p):
+                edge_label += f' {get_cardinality_name(p)} {o}'
+
+            elif is_collection(p):
+                child_id = f'Res-{random.randint(0, 1000000000000)}#{get_collection_name(p)}'
+                child_node = o
+
+            elif p == OWL.onClass:
+                child_id = f'Res-{random.randint(0, 1000000000000)}#{o}'
+
+            if p == OWL.onProperty:
+                edge_label += f'/{uri_or_literal_2label(self.kg, o)}'
+
+        if child_id != '':
+            self._add_node(child_id)
+            if len(edge_label) > 1 and edge_label[0] == '/':
+                edge_label = edge_label[1:]
+            self._add_edge(parent_id, child_id, edge_label)
+
+            if isinstance(child_node, BNode):
+                self._list_recursion(parent_node=child_node, parent_id=child_id, edge_label='')
 
     def get_graph_to_visualize(self):
         return self.graph_to_visualize
@@ -163,4 +162,4 @@ class KnowledgeGraph:
 #             graph_to_visualize.get("nodes").append({'id': str(node), 'label': uri_or_literal_2label(kg, node),
 #                                                     'shape': 'box'})
 
-# kg = KnowledgeGraph('data/food_cutting.owl')
+kg = KnowledgeGraph('data/food_cutting.owl')
