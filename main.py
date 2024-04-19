@@ -97,33 +97,33 @@ def get_tasks_and_ingredients():
 
 
 
-graphData = {
-    "nodes": [
-        { "id": 1, "label": "Ingredients", "color": "lightgreen"},
-        { "id": 2, "label": "Wet Ingredients", "color": "lightgreen" },
-        { "id": 3, "label": "Egg", "color": "lightgreen" },
-        { "id": 4, "label": "Task", "color": "red" },
-        { "id": 5, "label": "MixingTask", "color": "red" },
-        { "id": 6, "label": "VerticalCircular", "color": "red" },
-        { "id": 7, "label": "WhirlstormMotion", "color": "red" },
-        { "id": 8, "label": "radiuslower: 0.0", "color": "yellow" },
-        { "id": 9, "label": "radiusupper: 0.7", "color": "yellow" },
-        { "id": 10, "label": "radiusupper: 0.7", "color": "yellow" },
-        { "id": 11, "label": "radiuslower: 0.0", "color": "yellow" }
-    ],
-    "edges": [
-        { "from": 1, "to": 2 },
-        { "from": 2, "to": 3 },
-        { "from": 4, "to": 5 },
-        { "from": 5, "to": 6 },
-        { "from": 5, "to": 7 },
-        { "from": 6, "to": 8 },
-        { "from": 6, "to": 9 },
-        { "from": 7, "to": 10 },
-        { "from": 7, "to": 11 }
-    ]
-}
-
+# graphData = {
+#     "nodes": [
+#         { "id": 1, "label": "Ingredients", "color": "lightgreen"},
+#         { "id": 2, "label": "Wet Ingredients", "color": "lightgreen" },
+#         { "id": 3, "label": "Egg", "color": "lightgreen" },
+#         { "id": 4, "label": "Task", "color": "red" },
+#         { "id": 5, "label": "MixingTask", "color": "red" },
+#         { "id": 6, "label": "VerticalCircular", "color": "red" },
+#         { "id": 7, "label": "WhirlstormMotion", "color": "red" },
+#         { "id": 8, "label": "radiuslower: 0.0", "color": "yellow" },
+#         { "id": 9, "label": "radiusupper: 0.7", "color": "yellow" },
+#         { "id": 10, "label": "radiusupper: 0.7", "color": "yellow" },
+#         { "id": 11, "label": "radiuslower: 0.0", "color": "yellow" }
+#     ],
+#     "edges": [
+#         { "from": 1, "to": 2 },
+#         { "from": 2, "to": 3 },
+#         { "from": 4, "to": 5 },
+#         { "from": 5, "to": 6 },
+#         { "from": 5, "to": 7 },
+#         { "from": 6, "to": 8 },
+#         { "from": 6, "to": 9 },
+#         { "from": 7, "to": 10 },
+#         { "from": 7, "to": 11 }
+#     ]
+# }
+#
 
 
 
@@ -140,12 +140,11 @@ def get_data():
     data = request.json
     task = data.get('task')
     ingredients = data.get('ingredients')
-    print(task, ingredients)
-
+    task_tree, graphData = inference_builder.generate_task_tree_and_graphdata(task, ingredients)
     #task = "http://www.ease-crc.org/ont/mixing#BeatingTask"
     # ingredients = ["http://www.ease-crc.org/ont/mixing#Milk", "http://www.ease-crc.org/ont/mixing#Butter", "http://www.ease-crc.org/ont/mixing#Flour"]
     #ingredients = ["http://www.ease-crc.org/ont/mixing#Butter"]
-    return jsonify({"graphData": graphData, "tableData": inference_builder.generate_task_tree(task, ingredients)})
+    return jsonify({"graphData": graphData, "tableData": task_tree})
 
 if __name__ == '__main__':
     app.run(debug=True)
