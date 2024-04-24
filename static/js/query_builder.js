@@ -81,15 +81,11 @@ function populate_suggestions_triple(data, row) {
         const optgroup = Array.from(currentSelect.getElementsByTagName("optgroup"))
             .find(optgroup => optgroup.label === type[i]);
         if (optgroup) {
-            console.log("Found matching group");
             const newOption = document.createElement('option');
             const optionText = document.createTextNode(labels[i]);
             newOption.appendChild(optionText);
             newOption.setAttribute('value', iris[i]);
             optgroup.appendChild(newOption);
-        } else {
-            console.log("Didn't find matching group");
-            console.log(type[i]);
         }
     }
 }
@@ -103,8 +99,8 @@ function groupOptions(currentSelect, idx) {
                 currentSelect.appendChild(optgroup);
             }
         )
-    } else{
-        const classOptions = ["Equivalent To", "SubClassOf", "Is a", "Attributes", "Relations", "Other"];
+    } else {
+        const classOptions = ["Is a", "Attributes", "Relations", "Other"];
         classOptions.forEach(option => {
                 const optgroup = document.createElement("optgroup");
                 optgroup.label = option;
@@ -114,16 +110,18 @@ function groupOptions(currentSelect, idx) {
     }
 }
 
-function sendSelectedValues(row) {
+function sendSelectedValues(body) {
+    let row = body.children[body.children.length - 1]
     const select1 = row.children.item(0).children[0];
     const select2 = row.children.item(1).children[0];
     const select3 = row.children.item(2).children[0];
 
-    const selectedValues = [
-        encodeURIComponent(select1.value),
-        encodeURIComponent(select2.value),
-        encodeURIComponent(select3.value)
-    ];
+    const selectedValues = {
+        'rowIdx': body.children.length,
+        'firstSelect': encodeURIComponent(select1.value),
+        'secondSelect': encodeURIComponent(select2.value),
+        'thirdSelect': encodeURIComponent(select3.value)
+    };
 
     fetch('/query_builder', {
         method: 'POST',
@@ -146,11 +144,6 @@ function clearSelectedOptions() {
     body.innerHTML = '';
 }
 
-// Event listener for modal close event
-$('#exampleModalCenter').on('hidden.bs.modal', function (e) {
-    clearSelectedOptions();
-    queryBuilder();
-});
 
 function showSelectFields(row) {
     const select1 = row.children.item(0).children[0];
@@ -174,8 +167,22 @@ function showSelectFields(row) {
     }
 }
 
-function createSelectRow() {
-    const body = document.getElementById("query-builder-body");
+function observerSelectRows(body) {
+    let observedEmptyRow = false;
+    for (let i = 0; i < body.children.length; i++) {
+        let row = body.children.item(i)
+        if (observedEmptyRow) {
+            body.removeChild(row);
+            continue;
+        }
+        if (row.children.item(2).children[0].value === "") {
+            observedEmptyRow = true;
+        }
+    }
+    console.log(observedEmptyRow)
+}
+
+function createSelectRow(body) {
     const newSelectRow = document.createElement("div");
     newSelectRow.className = "row";
     newSelectRow.id = "select-row" + (body.children.length + 1);
@@ -207,14 +214,15 @@ function createSelectRow() {
 }
 
 
-function queryBuilder() {
+function queryBuilder(body) {
     fetchTriples().then(data => {
-        const row = createSelectRow();
 
+        const row = createSelectRow(body);
         const select1 = row.children.item(0).children[0];
         const select2 = row.children.item(1).children[0];
         const select3 = row.children.item(2).children[0];
         const button = row.children.item(3);
+        const run_button = document.getElementById("query-builder-run")
 
         if (select1 && select2 && select3) {
             select1.addEventListener('click', function () {
@@ -228,12 +236,14 @@ function queryBuilder() {
             });
 
             select3.addEventListener('change', function () {
-                sendSelectedValues(row);
+                sendSelectedValues(body);
                 button.style.display = "inline-block";
                 button.addEventListener("click", function () {
-                    queryBuilder();
+                    queryBuilder(body);
                     button.disabled = true;
+                    run_button.disabled = false;
                 });
+
             });
         }
     }).catch(error => {
