@@ -4,7 +4,8 @@ from query_builder import query_builder
 from urllib.parse import unquote
 
 app = Flask(__name__)
-qb = query_builder.get_query_builder()
+kg_instance = graph.graph.KnowledgeGraph('data/food_cutting.owl')
+qb = query_builder.get_query_builder(kg_instance)
 
 
 @app.route('/')
@@ -14,32 +15,39 @@ def index():
 
 @app.route('/get_graph_data_rdf')
 def get_graph_data_rdf():
-    kg_instance = graph.graph.KnowledgeGraph('data/food_cutting.owl')
+    # kg_instance = graph.graph.KnowledgeGraph('data/food_cutting.owl')
     graph_visualize = kg_instance.get_graph_to_visualize()
     print(f"Num nodes: {len(graph_visualize.get('nodes'))}")
     print(f"Num edges: {len(graph_visualize.get('edges'))}")
     return jsonify({'nodes': graph_visualize.get("nodes"), 'edges': graph_visualize.get("edges")})
 
 
-@app.route('/suggest_classes', methods=["GET"])
-def suggest_classes():
-    graph_visualize = graph.graph.get_graph_to_visualize()
-    classes = [i.get('id') for i in graph_visualize.get("nodes")]
-    return jsonify(classes)
-
-
 @app.route('/query_builder', methods=["GET", "POST"])
 def suggest_triples():
     if request.method == 'POST':
         print("Received data")
-        print(f"Chosen object {unquote(request.json['selectedValues'][2])}")
-        triple = [unquote(el) for el in request.json['selectedValues']]
-        qb.set_triple(triple)
+        response = request.json['selectedValues']
+        triple = [unquote(response['firstSelect']), unquote(response['secondSelect']), unquote(response['thirdSelect'])]
+        row_idx = response['rowIdx']
+        print(row_idx)
+        qb.set_triple(triple, row_idx)
         return jsonify(qb.mock_suggestion2())
     else:
         print("sending data")
         suggestions = qb.mock_suggestion2()
         return jsonify(suggestions)
+
+
+@app.route('/query_builder_redirect')
+def redirect2_query_builder_vis():
+    return render_template('queryBuilderViz.html')
+
+
+@app.route('/query_builder_graph_vis', methods=["GET", "POST"])
+def visualize_query_builder_filtered_graph():
+    graph_visualize = qb.get_filtered_graph()
+    print(f'Graph{graph_visualize}')
+    return jsonify({'nodes': graph_visualize.get("nodes"), 'edges': graph_visualize.get("edges")})
 
 
 if __name__ == '__main__':
