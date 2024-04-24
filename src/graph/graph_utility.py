@@ -10,14 +10,14 @@ tool = URIRef('http://www.ease-crc.org/ont/food_cutting#Tool')
 
 
 def uri_or_literal_2label(knowledge_graph: Graph, node: Union[URIRef, Literal, Node, str]) -> str:
-    for label in knowledge_graph.objects(node, RDFS.label):
-        return f"'{label}'"
-
-    if isinstance(node, Literal) or isinstance(node, BNode):
+    if isinstance(node, Literal):
         return str(node)
     else:
         if '#' in str(node):
-            return str(node).split('#')[-1]
+            label = str(node).split('#')[-1]
+            if '/' in label:
+                label = label.split('/')[-1]
+            return label
         else:
             return str(node).split('/')[-1]
 
@@ -25,20 +25,23 @@ def uri_or_literal_2label(knowledge_graph: Graph, node: Union[URIRef, Literal, N
 def recursive_pattern_matching(knowledge_graph: Graph, node: Node, result: []):
     for s, p, o in knowledge_graph.triples((node, None, None)):
         if isinstance(p, URIRef) and is_cardinality(p) or is_collection(p) or is_restriction(p) or p == RDF.first:
-            # print(s, p, o)
             result.extend([[s, p, o]])
         if isinstance(o, BNode):
             recursive_pattern_matching(knowledge_graph, o, result)
 
 
-def class_has_restrictions(knowledge_graph: Graph, cls: Node, property: URIRef):
-    for node in knowledge_graph.objects(cls, property):
-        if isinstance(node, BNode):
-            return True
-    return False
-
-
 def extract_property_value(knowledge_graph: Graph, node: Node):
+    edge, n = None, None
+    for s, p, o in knowledge_graph.triples((node, None, None)):
+        if p == OWL.onProperty:
+            edge = o
+        if isinstance(p, URIRef) and is_restriction(p):
+            n = o
+
+    return edge, n
+
+
+def extract_property_value2(knowledge_graph: Graph, node: Node):
     edge, n = None, None
     for s, p, o in knowledge_graph.triples((node, None, None)):
         if p == OWL.onProperty:
@@ -53,8 +56,10 @@ def extract_cardinality_types(knowledge_graph: Graph, node: Node):
     edge, cardinality, cls = None, None, None
     for s, p, o in knowledge_graph.triples((node, None, None)):
         if is_cardinality(p):
-            edge = p
+            # edge = p
             cardinality = o
+        if p == OWL.onProperty:
+            edge = o
         if p == OWL.onClass:
             cls = o
     return edge, cardinality, cls
