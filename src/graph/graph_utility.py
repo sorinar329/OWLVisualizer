@@ -10,21 +10,32 @@ tool = URIRef('http://www.ease-crc.org/ont/food_cutting#Tool')
 
 
 def uri_or_literal_2label(knowledge_graph: Graph, node: Union[URIRef, Literal, Node, str]) -> str:
+    soma_ns = "http://www.ease-crc.org/ont/SOMA.owl#"
+    dul_ns = "http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#"
+    for label in knowledge_graph.objects(URIRef(node), RDFS.label):
+        return str(label)
+
     if isinstance(node, Literal):
         return str(node)
     else:
+        label = str(node)
+        if soma_ns in label:
+            label = label.replace(soma_ns, 'SOMA:')
+        if dul_ns in label:
+            label = label.replace(dul_ns, 'DUL:')
         if '#' in str(node):
-            label = str(node).split('#')[-1]
+            label = label.split('#')[-1]
             if '/' in label:
                 label = label.split('/')[-1]
             return label
         else:
-            return str(node).split('/')[-1]
+            return label.split('/')[-1]
 
 
 def recursive_pattern_matching(knowledge_graph: Graph, node: Node, result: []):
     for s, p, o in knowledge_graph.triples((node, None, None)):
-        if isinstance(p, URIRef) and is_cardinality(p) or is_collection(p) or is_restriction(p) or p == RDF.first:
+        if isinstance(p, URIRef) and is_cardinality(p) or is_collection(p) or is_restriction(
+                p) or p == RDF.first or RDF.rest:
             result.extend([[s, p, o]])
         if isinstance(o, BNode):
             recursive_pattern_matching(knowledge_graph, o, result)
