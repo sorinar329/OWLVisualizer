@@ -46,7 +46,8 @@ class KnowledgeGraph:
 
     def _add_class_restrictions(self):
         classes_with_restrictions = [[s, p, o] for (s, p, o)
-                                     in self.kg.triples((URIRef('http://purl.obolibrary.org/obo/FOODON_00004183'), RDFS.subClassOf, None))
+                                     in self.kg.triples(
+                (None, RDFS.subClassOf, None))
                                      if isinstance(o, BNode)]
         classes_with_restrictions.extend([[s, p, o] for (s, p, o)
                                           in self.kg.triples((None, OWL.equivalentClass, None))
@@ -54,14 +55,39 @@ class KnowledgeGraph:
         for s, p, o in classes_with_restrictions:
             self._handle_bnode(parent_node=o, parent_id=str(s), edge_label=uri_or_literal_2label(self.kg, p))
 
+    def _add_class_restrictions2(self):
+        classes_with_restrictions = [[s, p, o] for (s, p, o)
+                                     in self.kg.triples((None, RDFS.subClassOf, None))
+                                     if isinstance(o, BNode)]
+
+        triples = []
+        nodes = set()
+        for s, p, o in classes_with_restrictions:
+            nodes.add(o)
+            self._add_edge(source_id=s, target_id=o, edge_label=p)
+            recursive_pattern_matching(self.kg, o, triples)
+
+        for s, p, o in triples:
+            subject_id = s
+            object_id = o
+            if not isinstance(s, BNode):
+                subject_id = f'Res-{random.randint(0, 1000000000000)}#{s}'
+            if not isinstance(o, BNode):
+                object_id = f'Res-{random.randint(0, 1000000000000)}#{o}'
+            nodes.add(subject_id)
+            nodes.add(object_id)
+            self._add_edge(source_id=subject_id, target_id=object_id, edge_label=p)
+        for node in nodes:
+            self._add_node(node)
+
     def _list_recursion(self, parent_node, parent_id, edge_label):
+
         for triple in self.kg.triples((parent_node, None, None)):
             if triple[1] == RDF.first:
                 if isinstance(triple[2], BNode):
                     self._handle_bnode(parent_node=triple[2], parent_id=parent_id, edge_label=edge_label)
                 else:
                     edge_label, child_node = '', f'Res-{random.randint(0, 1000000000000)}#{triple[2]}'
-                    #edge_label, child_node = '', f'Res-{random.randint(0, 1000000000000)}#{triple[2]}'
                     self._add_node(node_id=child_node)
                     self._add_edge(source_id=str(parent_id), target_id=child_node, edge_label=edge_label)
             else:
@@ -88,7 +114,6 @@ class KnowledgeGraph:
             elif is_collection(p):
                 child_id = (f'Res-{random.randint(0, 1000000000000)}#'
                             f'{get_collection_name(p)}-{random.randint(0, 100000)}')
-                #child_id = f'Res-{1}#{get_collection_name(p)}'
                 child_node = o
 
             elif p == OWL.onClass:
@@ -151,7 +176,6 @@ class KnowledgeGraph:
 
         self.dominant_namespace = max(count, key=lambda key: count[key])
 
-
 # def get_instances(kg: Graph):
 #     nodes = set()
 #     for instance, _, cls in kg.triples((None, RDF.type, OWL.NamedIndividual)):
@@ -165,4 +189,4 @@ class KnowledgeGraph:
 #             graph_to_visualize.get("nodes").append({'id': str(node), 'label': uri_or_literal_2label(kg, node),
 #                                                     'shape': 'box'})
 
-kg = KnowledgeGraph('data/food_cutting.owl')
+# kg = KnowledgeGraph('data/food_cutting.owl')
