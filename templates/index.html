@@ -58,8 +58,7 @@
             </div>
             <div class="modal-body" id="query-builder-body" style="flex: 1; overflow-y: auto;"></div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" onclick="saveChanges()">Save changes</button>
+                <button type="button" class="btn btn-primary" onclick="runAndOpen()">Run</button>
             </div>
         </div>
     </div>
@@ -77,9 +76,28 @@
 <script src="/static/js/graphviz.js"></script>
 <script src="/static/js/query_builder.js"></script>
 
+
+<script>
+    function runAndOpen() {
+        $('#exampleModalCenter').modal('hide');
+        window.open('/query_builder_redirect', '_blank');
+    }
+</script>
+
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        queryBuilder();
+        const body = document.getElementById("query-builder-body");
+        $('#exampleModalCenter').on('hidden.bs.modal', function (e) {
+            const body = document.getElementById("query-builder-body");
+            clearSelectedOptions();
+            queryBuilder(body);
+        });
+
+
+        body.addEventListener('change', function () {
+            observerSelectRows(body);
+        });
+        queryBuilder(body);
     });
 
     viz_graph();
