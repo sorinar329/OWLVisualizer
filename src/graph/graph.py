@@ -27,10 +27,10 @@ class KnowledgeGraph:
         self.graph_to_visualize.get("nodes").append(
             {'id': node_id, 'label': label})
 
-    def _add_edge(self, parent_id: str, child_id: str, edge_label: str):
+    def _add_edge(self, source_id: str, target_id: str, edge_label: str):
         self.graph_to_visualize.get("edges").append(
-            {'from': child_id, 'to': parent_id, 'label': edge_label,
-             'arrows': 'from'})
+            {'from': source_id, 'to': target_id, 'label': edge_label,
+             'arrows': 'to'})
 
     def _add_class_hierarchy(self):
         nodes = set()
@@ -40,13 +40,13 @@ class KnowledgeGraph:
 
             nodes.add(subclass)
             nodes.add(subclass)
-            self._add_edge(parent_id=str(subclass), child_id=str(superclass), edge_label='subClassOf')
+            self._add_edge(source_id=str(subclass), target_id=str(superclass), edge_label='subClassOf')
         for node in nodes:
             self._add_node(node_id=str(node))
 
     def _add_class_restrictions(self):
         classes_with_restrictions = [[s, p, o] for (s, p, o)
-                                     in self.kg.triples((None, RDFS.subClassOf, None))
+                                     in self.kg.triples((URIRef('http://purl.obolibrary.org/obo/FOODON_00004183'), RDFS.subClassOf, None))
                                      if isinstance(o, BNode)]
         classes_with_restrictions.extend([[s, p, o] for (s, p, o)
                                           in self.kg.triples((None, OWL.equivalentClass, None))
@@ -61,8 +61,9 @@ class KnowledgeGraph:
                     self._handle_bnode(parent_node=triple[2], parent_id=parent_id, edge_label=edge_label)
                 else:
                     edge_label, child_node = '', f'Res-{random.randint(0, 1000000000000)}#{triple[2]}'
+                    #edge_label, child_node = '', f'Res-{random.randint(0, 1000000000000)}#{triple[2]}'
                     self._add_node(node_id=child_node)
-                    self._add_edge(parent_id=str(parent_id), child_id=child_node, edge_label=edge_label)
+                    self._add_edge(source_id=str(parent_id), target_id=child_node, edge_label=edge_label)
             else:
                 self._list_recursion(parent_node=triple[2], parent_id=parent_id, edge_label=edge_label)
 
@@ -85,7 +86,9 @@ class KnowledgeGraph:
                 edge_label += f' {get_cardinality_name(p)} {o}'
 
             elif is_collection(p):
-                child_id = f'Res-{random.randint(0, 1000000000000)}#{get_collection_name(p)}'
+                child_id = (f'Res-{random.randint(0, 1000000000000)}#'
+                            f'{get_collection_name(p)}-{random.randint(0, 100000)}')
+                #child_id = f'Res-{1}#{get_collection_name(p)}'
                 child_node = o
 
             elif p == OWL.onClass:
@@ -98,7 +101,7 @@ class KnowledgeGraph:
             self._add_node(child_id)
             if len(edge_label) > 1 and edge_label[0] == '/':
                 edge_label = edge_label[1:]
-            self._add_edge(parent_id, child_id, edge_label)
+            self._add_edge(source_id=parent_id, target_id=child_id, edge_label=edge_label)
 
             if isinstance(child_node, BNode):
                 self._list_recursion(parent_node=child_node, parent_id=child_id, edge_label='')
