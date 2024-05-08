@@ -108,51 +108,52 @@
         </div>
 
         <div class="container ">
-                <div class="container-fluid">
-                    <a class="navbar-brand" href="#">OWLVisualizer</a>
-                    <button class="navbar-toggler" type="button" data-toggle="collapse"
-                            data-target="#navbarSupportedContent"
-                            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                        <span class="navbar-toggler-icon"></span>
-                    </button>
-                    <div class="collapse navbar-collapse justify-content-between" id="navbarSupportedContent">
-                        <div class="d-flex flex-grow-0"> <!-- Hier werden die Buttons links ausgerichtet -->
-                            <div class="btn-group mr-2" role="group" aria-label="Basic example">
-                                <button class="btn btn-primary" type="button" style="background-color: #274C77;">Load
-                                    Ontology
-                                </button>
-                                <button type="button" class="btn btn-primary" data-toggle="modal"
-                                        data-target="#exampleModalCenter"
-                                        style="background-color: #274C77;">QueryBuilder
-                                </button>
-                                <button type="button" style="background-color: #274C77;" class="btn btn-primary" data-toggle="modal" data-target="#customModal">
-                                    Custom Reasoner
-                                </button>
-                            </div>
-                        </div>
-                        <form class="form-inline flex-grow-1 justify-content-center">
-                            <!-- Hier wird die Suchleiste in der Mitte positioniert -->
-                            <div class="input-group">
-                                <input id="searchBar" type="text" class="form-control" size="40" placeholder="Search"
-                                       aria-label="Search"
-                                       aria-describedby="search-icon">
-                                <div class="input-group-append">
-                                    <button class="btn btn-light" type="button"><i class="bi bi-search"></i></button>
-                                </div>
-                            </div>
-                        </form>
-                        <div class="d-flex flex-grow-0"> <!-- Hier wird der Button rechts ausgerichtet -->
-                            <button type="submit" class="btn btn-outline-light">
-                                <i class="bi bi-justify"></i>
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">OWLVisualizer</a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse"
+                        data-target="#navbarSupportedContent"
+                        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse justify-content-between" id="navbarSupportedContent">
+                    <div class="d-flex flex-grow-0"> <!-- Hier werden die Buttons links ausgerichtet -->
+                        <div class="btn-group mr-2" role="group" aria-label="Basic example">
+                            <button class="btn btn-primary" type="button" style="background-color: #274C77;">Load
+                                Ontology
+                            </button>
+                            <button type="button" class="btn btn-primary" data-toggle="modal"
+                                    data-target="#exampleModalCenter"
+                                    style="background-color: #274C77;">QueryBuilder
+                            </button>
+                            <button type="button" style="background-color: #274C77;" class="btn btn-primary"
+                                    data-toggle="modal" data-target="#customModal">
+                                Custom Reasoner
                             </button>
                         </div>
-                        <div class="dropdown" id="suggestionsDropdown">
-                            <div class="dropdown-menu" aria-labelledby="searchBar">
-                                <!-- Hier werden die Vorschläge angezeigt -->
+                    </div>
+                    <form class="form-inline flex-grow-1 justify-content-center">
+                        <!-- Hier wird die Suchleiste in der Mitte positioniert -->
+                        <div class="input-group">
+                            <input id="searchBar" type="text" class="form-control" size="40" placeholder="Search"
+                                   aria-label="Search"
+                                   aria-describedby="search-icon">
+                            <div class="input-group-append">
+                                <button class="btn btn-light" type="button"><i class="bi bi-search"></i></button>
                             </div>
+                        </div>
+                    </form>
+                    <div class="d-flex flex-grow-0"> <!-- Hier wird der Button rechts ausgerichtet -->
+                        <button type="submit" class="btn btn-outline-light">
+                            <i class="bi bi-justify"></i>
+                        </button>
+                    </div>
+                    <div class="dropdown" id="suggestionsDropdown">
+                        <div class="dropdown-menu" aria-labelledby="searchBar">
+                            <!-- Hier werden die Vorschläge angezeigt -->
                         </div>
                     </div>
                 </div>
+            </div>
 </nav>
 <!-- Modal -->
 <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
@@ -222,8 +223,6 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        vizGraph();
-
         $('#exampleModalCenter').on('hidden.bs.modal', function (e) {
             clearSelectedOptions();
         });
