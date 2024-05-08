@@ -2,7 +2,6 @@ from flask import Flask, render_template, jsonify, request
 import graph.graph
 from query_builder import query_builder
 from urllib.parse import unquote
-import src.graph.graph
 import src.graph.coloring
 import os
 from rdflib import Graph, OWL, RDFS, RDF
@@ -13,7 +12,7 @@ from src import inference_builder
 # import query_builder
 
 app = Flask(__name__)
-kg_instance = graph.graph.KnowledgeGraph('data/food_cutting.owl')
+kg_instance = graph.KnowledgeGraph('/home/mkuempel/workspace/OWLVisualizer/static/ontologies/mixing.owl')
 qb = query_builder.get_query_builder(kg_instance)
 
 
@@ -29,38 +28,40 @@ def owlviz():
 
 cached_data = None
 cached_status = False
-data_path = "C:\Dev\OWLVisualizer\data"
+data_path = "/home/mkuempel/workspace/OWLVisualizer/data"
 
 
 @app.route('/get_graph_data_rdf')
 def get_graph_data_rdf():
-    # kg_instance = graph.graph.KnowledgeGraph('data/food_cutting.owl')
+    file_paths = [os.path.join(data_path, file) for file in
+                  os.listdir(data_path)]
+    kg_instance = graph.KnowledgeGraph(file_paths[0])
     graph_visualize = kg_instance.get_graph_to_visualize()
     print(f"Num nodes: {len(graph_visualize.get('nodes'))}")
     print(f"Num edges: {len(graph_visualize.get('edges'))}")
     return jsonify({'nodes': graph_visualize.get("nodes"), 'edges': graph_visualize.get("edges")})
-    global cached_data
-    global cached_status
-    file_path = [os.path.join(data_path, file) for file in
-                 os.listdir(data_path)]
-
-    knowledge_graph = Graph()
-    knowledge_graph.parse(file_path[0])
-    if not cached_status:
-        if cached_data is None:
-            graph_visualize = graph.get_graph_to_visualize(knowledge_graph)
-            coloring.color_classes(graph_visualize)
-            coloring.color_parameters(graph_visualize)
-            cached_data = {'nodes': graph_visualize.get("nodes"), 'edges': graph_visualize.get("edges")}
-            cached_status = True
-            return jsonify(cached_data)
-    if cached_status:
-        graph_visualize = graph.get_graph_to_visualize(knowledge_graph)
-        coloring.color_classes(graph_visualize)
-        coloring.color_parameters(graph_visualize)
-        cached_data_new = {'nodes': graph_visualize.get("nodes"), 'edges': graph_visualize.get("edges")}
-
-        return jsonify(cached_data_new)
+    # global cached_data
+    # global cached_status
+    # file_path = [os.path.join(data_path, file) for file in
+    #              os.listdir(data_path)]
+    #
+    # knowledge_graph = Graph()
+    # knowledge_graph.parse(file_path[0])
+    # if not cached_status:
+    #     if cached_data is None:
+    #         graph_visualize = graph.get_graph_to_visualize(knowledge_graph)
+    #         coloring.color_classes(graph_visualize)
+    #         coloring.color_parameters(graph_visualize)
+    #         cached_data = {'nodes': graph_visualize.get("nodes"), 'edges': graph_visualize.get("edges")}
+    #         cached_status = True
+    #         return jsonify(cached_data)
+    # if cached_status:
+    #     graph_visualize = graph.get_graph_to_visualize(knowledge_graph)
+    #     coloring.color_classes(graph_visualize)
+    #     coloring.color_parameters(graph_visualize)
+    #     cached_data_new = {'nodes': graph_visualize.get("nodes"), 'edges': graph_visualize.get("edges")}
+    #
+    #     return jsonify(cached_data_new)
 
 
 @app.route('/query_builder', methods=["GET", "POST"])
