@@ -2,18 +2,7 @@
 import rdflib
 from rdflib.term import BNode, URIRef, Literal, Node
 from owlready2 import *
-# Liste von Tasks
-# Liste von Ingredients
-# Liste von Containern
-# Liste von Tools
 
-# 1. Funktion für die Erstellung der Query für die Tasks DONE
-# 2. Funktion für die Erstellung der QUery für die Ingredients DONE
-# 3. Funktion für die Erstellung der Query für Tools
-# 4. Funktion für die Erstellung der Query für Container
-
-# 5. Funktion für Inferenz  mit Input 1 Ingredient und Liste von Ingredients.
-# 6. Funktion für die Datenausgabe der Visualisierung.
 
 knowledge_graph = rdflib.Graph()
 knowledge_graph.parse("static/ontologies/mixing.owl")
@@ -113,65 +102,59 @@ def init_graph_to_visualize():
 
 def generate_task_tree_and_graphdata(task, ingredients):
 
-    motion, parameters = get_inference(task, ingredients)
+    motion, parameters, task_instance = get_inference(task, ingredients)
 
-    # GRAPHDATA
     graph = init_graph_to_visualize()
+    nodes = set()
+    for property in task_instance.get_properties():
+        for value in property[task_instance]:
+            nodes.add(value)
+            graph.get("edges").append({'from': task_instance.name, 'to': value.name, 'label': property.name})
+            for cls in value.is_a:
+                if property.name == "hasIngredient":
+                    graph.get("edges").append({"from": cls.name, "to": cls.is_a[0].name, 'label': "subClassOf"})
+                    nodes.add(cls.is_a[0])
+                graph.get("edges").append({'from': cls.name, 'to': "Thing", 'label': "subClassOf"})
+                graph.get("edges").append({'from': value.name, 'to': cls.name, 'label': "is a"})
+                nodes.add(cls)
 
-    graph.get("nodes").append({'id': "Thing", 'label': "Thing"})
-    graph.get("nodes").append({'id': "Task", 'label': "Task"})
-    graph.get("nodes").append({'id': "Ingredients", 'label': "Ingredients"})
-    graph.get("nodes").append({'id': "Tools", 'label': "Tools", "color": "lightgreen"})
+    graph.get("edges").append({'from': task_instance.name, 'to': task_instance.is_a[0].name, 'label': "is a" })
+    nodes.add(task_instance.is_a[0])
+    nodes.add(task_instance)
+
+    for node in nodes:
+        graph.get("nodes").append({'id': node.name, 'label': node.name})
+
+    graph.get("nodes").append({'id': "Container_instance", 'label': "ContainerObject", "color": "lightgreen"})
     graph.get("nodes").append({'id': "Container", 'label': "Container", "color": "lightgreen"})
-    graph.get("nodes").append({'id': "Motion", 'label': "Motion"})
+    graph.get("nodes").append({'id': "Tool_instance", 'label': "ToolObject", "color": "lightgreen"})
+    graph.get("nodes").append({'id': "Tool", 'label': "Tool", "color": "lightgreen"})
 
-    graph.get("edges").append({'from': "Thing", 'to': "Motion", 'label': "subClassOf" })
-    graph.get("edges").append({'from': "Thing", 'to': "Task", 'label': "subClassOf"})
-    graph.get("edges").append({'from': "Thing", 'to': "Ingredients", 'label': "subClassOf"})
-    graph.get("edges").append({'from': "Thing", 'to': "Tools", 'label': "subClassOf"})
-    graph.get("edges").append({'from': "Thing", 'to': "Container", 'label': "subClassOf"})
-    for tool in get_tool_leaf()[1]:
-        graph.get("nodes").append({"id": str(tool), "label": str(tool), "color": "lightgreen"})
-        graph.get("edges").append({"from": "Tools", "to": str(tool), "label": "subClassof"})
+    graph.get("edges").append({'from': task_instance.name, 'to': "Container_instance", 'label': "hasContainer" })
+    graph.get("edges").append({'from': task_instance.name, 'to': "Tool_instance", 'label': "hasTool" })
+    graph.get("edges").append({'from': "Container_instance", 'to': "Container", 'label': "is a", "arrow": "to"  })
+    graph.get("edges").append({'from': "Tool_instance", 'to': "Tool", 'label': "is a", "arrow": "to" })
 
-    for container in get_container_leaf()[1]:
-        graph.get("nodes").append({"id": str(container), "label": str(container), "color": "lightgreen"})
-        graph.get("edges").append({"from": "Container", "to": str(container), "label": "subClassof"})
-
-    graph.get("nodes").append({'id': str(task).split("#")[1], 'label': str(task).split("#")[1]})
-    graph.get("edges").append({'from': str(task).split("#")[1], 'to': "Task", 'label': "subClassOf"})
-
-    for ing in ingredients:
-        graph.get("nodes").append({"id":  str(ing).split("#")[1], "label":  str(ing).split("#")[1]})
-        graph.get("edges").append({"from": "Ingredients", "to":  str(ing).split("#")[1], "label": "subClassof"})
-
-    graph.get("nodes").append({'id': str(motion), 'label': str(motion), "color": "yellow"})
-    graph.get("edges").append({'from': "Motion", 'to': str(motion), 'label': "subClassOf"})
     for para in parameters:
         graph.get("nodes").append({'id': str(para["Parameter"]), 'label': str(para["Parameter"]),"color": "yellow"})
         graph.get("edges").append({'from': str(para["Parameter"]), 'to': str(motion), 'label': "subClassOf"})
         graph.get("nodes").append({'id': str(para["Value"]), 'label': str(para["Value"]), "color": "orange"})
         graph.get("edges").append({'from': str(para["Parameter"]), 'to':str(para["Value"]), 'label': "value"})
 
-    # TASKLIST
-    first_entry = {"col1": "1", "col2": "Pick up any Tool", "col3": "MixingTool: " + str(get_tool_leaf()[1])}
-    second_entry = { 'col1': '2.', 'col2': 'Go to the Container', 'col3': "Container: " + str(get_container_leaf()[1])}
-    third_entry = {'col1': '3', 'col2': 'Hold the container with the left arm', 'col3': "Container: " + str(get_container_leaf()[1])}
+    first_entry = {"col1": "1", "col2": "Pick up any Tool", "col3": "Asserted: MixingTool: " + str(get_tool_leaf()[1])}
+    second_entry = { 'col1': '2.', 'col2': 'Go to the Container', 'col3': "Asserted: Container: " + str(get_container_leaf()[1])}
+    third_entry = {'col1': '3', 'col2': 'Hold the container with the left arm', 'col3': "Asserted Container: " + str(get_container_leaf()[1])}
     fourth_entry = {'col1': '4', 'col2': 'Go on the start position with the right arm for the Motion: ' + motion,
                     'col3' : "Infered Motion: " + motion}
-    #for
+
     fifth_entry = {'col1': '5', 'col2': 'Execute the Motion: ' + motion + ' with the infered Parameters', 'col3': "Infered Parameters: " +
                                                                                                    str(parameters).replace("]","").replace("[", "")}
 
-    sixth_entry = {'col1': '6.', 'col2': 'Put the Tool down left to the container', 'col3': "MixingTool: Any, Container: Any"}
+    sixth_entry = {'col1': '6.', 'col2': 'Put the Tool down left to the container', 'col3':"Asserted: MixingTool: Any, Container: Any"}
 
     seventh_entry ={'col1': '7.', 'col2': 'Finish', 'col3': ""}
 
-
-
-
     task_list = [first_entry, second_entry, third_entry, fourth_entry, fifth_entry, sixth_entry, seventh_entry]
-
 
     return task_list, graph
 
@@ -180,7 +163,6 @@ def generate_task_tree_and_graphdata(task, ingredients):
 def get_inference(task, ingredients):
     onto = get_ontology("C:\Dev\OWLVisualizer\static\ontologies\mixing.owl").load()
     task_name = task.split("#")[1]
-    #KlassenName und Instanz dürfen nicht gleich heißen !!!
     task_instance = onto[task_name](f"{task_name}-1")
     ingredients_list = []
     for i in ingredients:
@@ -209,10 +191,10 @@ def get_inference(task, ingredients):
         destroy_entity(r)
 
     sync_reasoner(infer_property_values=True)
-    a = motion.is_a[0].iri
-    motion = a.split("#")[1]
+    a = motion.is_a[0]
+    motion = a.name
     triples = []
-    get_restrictions_recursive(rdflib.URIRef(a), triples)
+    get_restrictions_recursive(rdflib.URIRef(a.iri), triples)
     parameters = []
 
     temp_dict = {}
@@ -226,7 +208,7 @@ def get_inference(task, ingredients):
 
 
 
-    return motion, parameters
+    return motion, parameters, task_instance
 
 def get_restrictions_recursive(node, triples):
     for s, p, o in knowledge_graph.triples((node, None, None)):
