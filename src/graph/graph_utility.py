@@ -19,10 +19,10 @@ def uri_or_literal_2label(knowledge_graph: Graph, node: Union[URIRef, Literal, N
         return str(node)
     else:
         label = str(node)
-        if soma_ns in label:
-            label = label.replace(soma_ns, 'SOMA:')
-        if dul_ns in label:
-            label = label.replace(dul_ns, 'DUL:')
+        # if soma_ns in label:
+        #     label = label.replace(soma_ns, 'SOMA:')
+        # if dul_ns in label:
+        #     label = label.replace(dul_ns, 'DUL:')
         if '#' in str(node):
             label = label.split('#')[-1]
             if '/' in label:

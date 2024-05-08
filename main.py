@@ -28,14 +28,21 @@ def suggest_triples():
         print("Received data")
         response = request.json['selectedValues']
         triple = [unquote(response['firstSelect']), unquote(response['secondSelect']), unquote(response['thirdSelect'])]
-        row_idx = response['rowIdx']
-        print(row_idx)
-        qb.set_triple(triple, row_idx)
+        print(triple)
+        qb.set_triple(triple)
         return jsonify(qb.mock_suggestion2())
     else:
         print("sending data")
         suggestions = qb.mock_suggestion2()
         return jsonify(suggestions)
+
+
+@app.route('/query_builder_clear', methods=['POST'])
+def clear_triples():
+    response = request.json
+    print(response['clearTriples'])
+    qb.clear_triples(response['clearTriples'])
+    return jsonify({'message': 'Cleared triples'}), 200
 
 
 @app.route('/query_builder_redirect')
