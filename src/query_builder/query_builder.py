@@ -15,9 +15,15 @@ class QueryBuilder:
         self.kg = knowledge_graph.get_rdflib_graph()
         self.triples = []
 
-    def set_triple(self, triple, row_idx):
+    def set_triple(self, triple):
         self.triples.append(triple)
-        self.triples = self.triples[:row_idx]
+
+    def clear_triples(self, clear_triples: list = None):
+        if clear_triples is []:
+            self.triples = []
+        else:
+            for triple in clear_triples:
+                self.triples.remove(triple)
 
     def get_filtered_graph(self):
         filtered_graph = {'nodes': [], 'edges': []}
@@ -112,12 +118,16 @@ class QueryBuilder:
         else:
             suggest_triples.extend(self.get_restriction_triples())
             suggest_triples.extend(self.get_hierarchical_triples())
-            # for edge in edges:
-            #     if self.triples[-1][2] == edge['from']:
-            #         suggest_triples.extend([[edge['from'], edge['label'], edge['to']]])
-            #     return
+
         mocked_solution = {'subjects': []}
         for triple in suggest_triples:
+            type_triple = ''
+
+            if (triple[1] == RDFS.subClassOf or triple[1] == OWL.equivalentClass) and not triple[2].startswith('Res'):
+                type_triple = 'Hierarchy'
+            elif triple[0].startswith('Res') or triple[2].startswith('Res'):
+                type_triple = 'Restriction'
+
             s = [subject for subject in mocked_solution['subjects'] if subject['iri'] == str(triple[0])]
             if len(s) == 0:
                 # type_subject = self.get_typeof_node(URIRef(triple[0]))
@@ -135,7 +145,7 @@ class QueryBuilder:
                 type_predicate = self.get_typeof_predicate(triple[1])
 
                 predicate = {'iri': str(triple[1]),
-                             'label': graph_utility.uri_or_literal_2label(self.kg, triple[1]),
+                             'label': triple[1],
                              'type': 'Relations', 'objects': []}
                 s['predicates'].append(predicate)
                 p = predicate
@@ -151,6 +161,5 @@ class QueryBuilder:
 def get_query_builder(kg_instance):
     return QueryBuilder(kg_instance)
 
-
-qb = get_query_builder(kg_instance=graph.KnowledgeGraph('data/food_cutting.owl'))
+# qb = get_query_builder(kg_instance=graph.KnowledgeGraph('data/food_cutting.owl'))
 # qb.mock_suggestion2()
