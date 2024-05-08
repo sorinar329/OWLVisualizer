@@ -1,17 +1,9 @@
-function populate_suggestions_datalist() {
-    fetch('/suggest_classes')
-            .then(response => response.json())
-            .then(data => {
-                // Update the datalist options
-                const datalist = document.getElementById('datalistOptions');
-                datalist.innerHTML = '';
-
-                // Populate datalist with options from the backend
-                data.forEach(option => {
-                    const optionElement = document.createElement('option');
-                    optionElement.value = option;
-                    datalist.appendChild(optionElement);
-                });
-            })
-            .catch(error => console.error('Error fetching data:', error));
+function autocompleteInput(searchBar, data) {
+    searchBar.addEventListener('input', function () {
+        const inputValue = searchBar.value.toLowerCase(); // Den Eingabewert der Suchleiste in Kleinbuchstaben umwandeln
+        const matchingLabels = Object.values(data)
+            .filter(nodeData => nodeData.label.toLowerCase().includes(inputValue))
+            .map(nodeData => nodeData.label);
+        console.log(matchingLabels);
+    });
 }
