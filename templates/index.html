@@ -36,11 +36,12 @@
             <form class="form-inline flex-grow-1 justify-content-center">
                 <!-- Hier wird die Suchleiste in der Mitte positioniert -->
                 <div class="input-group">
-                    <input id="searchBar" type="text" class="form-control" size="40" placeholder="Search"
-                           aria-label="Search"
-                           aria-describedby="search-icon">
+                    <input id="searchBar" type="text" class="form-control" list="datalistOptions" size="40"
+                           placeholder="Search for class or instance">
+                    <datalist id="datalistOptions">
+                    </datalist>
                     <div class="input-group-append">
-                        <button class="btn btn-light" type="button"><i class="bi bi-search"></i></button>
+                        <button class="btn btn-light" id="searchButton" type="button"><i class="bi bi-search"></i></button>
                     </div>
                 </div>
             </form>

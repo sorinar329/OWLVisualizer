@@ -23,10 +23,11 @@ function vizGraph() {
             const edgesDataset = new vis.DataSet(data.edges)
             const network = new vis.Network(container, {nodes: nodesDataset, edges: edgesDataset}, options);
             const searchBar = document.getElementById("searchBar");
-            console.log(network);
-            searchBar.addEventListener("keyup", function () {
-               data = network.body.data.nodes._data;
-               autocompleteInput(this, data);
+            data = network.body.data.nodes._data;
+            autocompleteInput(data);
+            const searchButton = document.getElementById("searchButton");
+            searchButton.addEventListener("click", function () {
+               viewNode(network, data);
             });
 
 
