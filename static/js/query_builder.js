@@ -54,7 +54,6 @@ function populate_suggestions_triple(selectElement, idx) {
         let labels;
         let iris;
         let type;
-        console.log(idx)
         if (idx === 1) {
             const subjects = data['subjects'];
             labels = subjects.map(subject => {
