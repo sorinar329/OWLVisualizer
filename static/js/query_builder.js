@@ -1,9 +1,9 @@
 let restrictionIdx = 1;
 let fetchedData = null;
 
-let sub = null;
-let pred = null;
-let obj = null;
+let sub = "";
+let pred = "";
+let obj = "";
 
 function fetchTriplesOnce() {
     return new Promise((resolve, reject) => {
@@ -28,20 +28,35 @@ function fetchTriplesOnce() {
     });
 }
 
-function selectedValue(selectElement) {
+function selectedValue(selectElement, idx) {
     const row = document.getElementById("query-builder-select-row");
-    const selects = row.querySelectorAll('select');
-    let idx = Array.prototype.indexOf.call(selects, selectElement) + 1;
-    console.log("Called selectedVAlue")
+    const select2 = row.children.item(1).children[0];
+    const select3 = row.children.item(2).children[0];
+
     if (idx === 1) {
+        if (sub !== selectElement.value && sub !== "") {
+            sub = selectElement.value;
+            select2.classList.add("d-none");
+            select2.innerHTML = "";
+            select3.classList.add("d-none");
+            select3.innerHTML = "";
+        }
         sub = selectElement.value;
-        selectElement.title = sub;
+        selectElement.title = selectElement.options[selectElement.selectedIndex].textContent;
+
     } else if (idx === 2) {
+        if (pred !== selectElement.value) {
+            pred = selectElement.value;
+            select3.classList.add("d-none");
+            select3.innerHTML = "";
+        }
         pred = selectElement.value;
-        selectElement.title = pred;
+        selectElement.title = selectElement.options[selectElement.selectedIndex].textContent;
+    } else if (idx === 3) {
+        obj = selectElement.value;
+        selectElement.title = selectElement.options[selectElement.selectedIndex].textContent;
     } else {
-        obj = selectElement.value
-        selectElement.title = obj;
+
     }
 }
 
@@ -50,7 +65,7 @@ function populate_suggestions_triple(selectElement, idx) {
         if (selectElement.innerHTML !== "") {
             return
         }
-
+        selectElement.innerHTML = "";
         let labels;
         let iris;
         let type;
@@ -145,6 +160,7 @@ function sendSelectedValues() {
         'thirdSelect': encodeURIComponent(select3.value)
     };
     fetchedData = null;
+    [sub, pred, obj] = ["", "", ""]
     fetch('/query_builder', {
         method: 'POST',
         headers: {
@@ -154,7 +170,6 @@ function sendSelectedValues() {
     })
         .then(response => response.json())
         .then(data => {
-            // Handle the response from the server
         })
         .catch(error => console.error('Error sending data to server:', error));
 
@@ -254,7 +269,6 @@ function showSelectFields(row) {
     const select2 = row.children.item(1).children[0];
     const select3 = row.children.item(2).children[0];
     const button = row.children.item(3).children[0];
-
     if (select1.value !== "") {
         select2.classList.remove("d-none");
     } else {
@@ -312,7 +326,7 @@ function createGroupedTripleCard(modalBody, groupName) {
 function displaySelectedTriples(rowName, lengthChildren) {
     const newSelectRow = document.createElement("div");
     newSelectRow.className = "row";
-    newSelectRow.id = rowName.title + "-" + "select-row" + (lengthChildren + 1);
+    newSelectRow.id = rowName + "-" + "select-row" + (lengthChildren + 1);
 
     const deleteCol = document.createElement("div");
     deleteCol.className = "col-auto";
@@ -384,7 +398,8 @@ function getTripleType(modalBody, row) {
             return tripleType;
         } else if (sub.startsWith("Res")) {
             let cards = modalBody.getElementsByClassName("card");
-            for (let i = 0; i < cards.length; i++) {
+            // 0th element is general card to select classes and relations
+            for (let i = 1; i < cards.length; i++) {
                 let cardBody = cards[i].getElementsByClassName("card-body")[0];
                 let selectRows = cardBody.getElementsByClassName("row");
                 for (let j = 0; j < selectRows.length; j++) {

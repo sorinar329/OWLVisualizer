@@ -79,26 +79,26 @@
                     </div>
                     <div class="card-body">
                         <div class="row justify-content-evenly" id="query-builder-select-row"
-                             onchange="showSelectFields(this)">
+                             onselect="showSelectFields(this)">
                             <div class="col">
                                 <select class="custom-select custom-select-sm" id="query-builder-select1"
                                         title="Choose a subject"
                                         onclick="populate_suggestions_triple(this, 1);"
-                                        onchange="selectedValue(this)"></select>
+                                        onchange="selectedValue(this, 1)"></select>
                             </div>
                             <div class="col">
                                 <select class="custom-select custom-select-sm d-none"
                                         id="query-builder-select2"
                                         title="Choose a predicate"
                                         onclick="populate_suggestions_triple(this, 2);"
-                                        onchange="selectedValue(this)"></select>
+                                        onchange="selectedValue(this, 2)"></select>
                             </div>
                             <div class="col">
                                 <select class="custom-select custom-select-sm d-none"
                                         id="query-builder-select3"
                                         title="Choose an object"
                                         onclick="populate_suggestions_triple(this, 3);"
-                                        onchange="selectedValue(this)"></select>
+                                        onchange="selectedValue(this, 3)"></select>
                             </div>
                             <div class="col-auto">
                                 <button class="btn btn-primary invisible" id="query-builder-add" title="Add"
@@ -144,6 +144,7 @@
 
         $('#exampleModalCenter').on('hidden.bs.modal', function (e) {
             clearSelectedOptions();
+            fetchedData = null;
         });
 
         $('#exampleModalCenter').on('shown.bs.modal', function () {
