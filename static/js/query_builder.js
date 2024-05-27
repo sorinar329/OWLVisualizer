@@ -1,35 +1,61 @@
 let restrictionIdx = 1;
+let fetchedData = null;
 
+let sub = null;
+let pred = null;
+let obj = null;
 
-function fetchTriples() {
-    return fetch(`/query_builder`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.subjects && data.subjects.length > 0) {
-                return data;
-            } else {
-                return null;
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching data:', error);
-            return null;
-        });
+function fetchTriplesOnce() {
+    return new Promise((resolve, reject) => {
+        if (fetchedData) {
+            resolve(fetchedData);
+        } else {
+            fetch(`/query_builder`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.subjects && data.subjects.length > 0) {
+                        fetchedData = data;
+                        resolve(data);
+                    } else {
+                        resolve(null);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                    resolve(null);
+                });
+        }
+    });
 }
 
-function populate_suggestions_triple(row) {
-    fetchTriples().then(data => {
-        const select1 = row.children.item(0).children[0];
-        const select2 = row.children.item(1).children[0];
-        const select3 = row.children.item(2).children[0];
+function selectedValue(selectElement) {
+    const row = document.getElementById("query-builder-select-row");
+    const selects = row.querySelectorAll('select');
+    let idx = Array.prototype.indexOf.call(selects, selectElement) + 1;
+    console.log("Called selectedVAlue")
+    if (idx === 1) {
+        sub = selectElement.value;
+        selectElement.title = sub;
+    } else if (idx === 2) {
+        pred = selectElement.value;
+        selectElement.title = pred;
+    } else {
+        obj = selectElement.value
+        selectElement.title = obj;
+    }
+}
 
-        let currentSelect;
+function populate_suggestions_triple(selectElement, idx) {
+    fetchTriplesOnce().then(data => {
+        if (selectElement.value !== "") {
+            return
+        }
+
         let labels;
         let iris;
         let type;
-        let idx;
-
-        if (select1.value === '') {
+        console.log(idx)
+        if (idx === 1) {
             const subjects = data['subjects'];
             labels = subjects.map(subject => {
                 return subject['label'];
@@ -40,11 +66,8 @@ function populate_suggestions_triple(row) {
             type = subjects.map(subject => {
                 return subject['type'];
             });
-            currentSelect = select1;
-            currentSelect.title = "Choose a Subject";
-            idx = 1;
-        } else if (select2.value === '') {
-            const selectedSubject = data['subjects'].find(subject => subject['iri'] === select1.value);
+        } else if (idx === 2) {
+            const selectedSubject = data['subjects'].find(subject => subject['iri'] === sub);
             const predicates = selectedSubject['predicates'];
             labels = predicates.map(predicate => {
                 return predicate['label'];
@@ -55,15 +78,9 @@ function populate_suggestions_triple(row) {
             type = predicates.map(subject => {
                 return subject['type'];
             });
-            console.log(select1);
-            select1.title = select1.options[select1.selectedIndex].textContent;
-            currentSelect = select2;
-            currentSelect.title = "Choose a Predicate";
-            idx = 2;
         } else {
-            select2.title = select2.textContent;
-            const selectedSubject = data['subjects'].find(subject => subject['iri'] === select1.value);
-            const selectedPredicate = selectedSubject['predicates'].find(predicate => predicate['iri'] === select2.value);
+            const selectedSubject = data['subjects'].find(subject => subject['iri'] === sub);
+            const selectedPredicate = selectedSubject['predicates'].find(predicate => predicate['iri'] === pred);
             const objects = selectedPredicate['objects'];
             labels = objects.map(object => {
                 return object['label'];
@@ -74,20 +91,15 @@ function populate_suggestions_triple(row) {
             type = objects.map(subject => {
                 return subject['type'];
             });
-            currentSelect = select3;
-            currentSelect.title = "Choose an Object";
-            idx = 3;
-
         }
 
-        currentSelect.innerHTML = '';
         const emptyOption = document.createElement('option');
         emptyOption.textContent = '';
-        currentSelect.appendChild(emptyOption);
-        groupOptions(currentSelect, idx);
+        selectElement.appendChild(emptyOption);
+        groupOptions(selectElement, idx);
 
         for (let i = 0; i < labels.length; i++) {
-            const optgroup = Array.from(currentSelect.getElementsByTagName("optgroup"))
+            const optgroup = Array.from(selectElement.getElementsByTagName("optgroup"))
                 .find(optgroup => optgroup.label === type[i]);
             if (optgroup) {
                 const option = document.createElement('option');
@@ -133,7 +145,7 @@ function sendSelectedValues() {
         'secondSelect': encodeURIComponent(select2.value),
         'thirdSelect': encodeURIComponent(select3.value)
     };
-
+    fetchedData = null;
     fetch('/query_builder', {
         method: 'POST',
         headers: {
@@ -213,6 +225,7 @@ function clearSelectedOptions() {
         let child = body.children[i];
         body.removeChild(child);
     }
+    fetchedData = null;
 
     fetch('/query_builder_clear', {
         method: 'POST',
@@ -242,9 +255,11 @@ function showSelectFields(row) {
     const select2 = row.children.item(1).children[0];
     const select3 = row.children.item(2).children[0];
     const button = row.children.item(3).children[0];
+
     if (select1.value !== "") {
         select2.classList.remove("d-none");
     } else {
+        select1.title = "Choose a subject";
         select2.classList.add("d-none");
         select2.selectedIndex = -1;
         select3.classList.add("d-none");
@@ -254,29 +269,18 @@ function showSelectFields(row) {
     if (select2.value !== "") {
         select3.classList.remove("d-none");
     } else {
+        select2.title = "Choose a predicate";
         select3.classList.add("d-none");
         select3.selectedIndex = -1;
     }
     if (select3.value === "") {
+        select3.title = "Choose an object"
         button.classList.add("invisible");
     } else {
         button.classList.remove("invisible");
     }
 }
 
-function observerSelectRows(body) {
-    let observedEmptyRow = false;
-    for (let i = 0; i < body.children.length; i++) {
-        let row = body.children.item(i)
-        if (observedEmptyRow) {
-            body.removeChild(row);
-            continue;
-        }
-        if (row.children.item(2).children[0].value === "") {
-            observedEmptyRow = true;
-        }
-    }
-}
 
 function createGroupedTripleCard(modalBody, groupName) {
     const card = document.createElement("div");

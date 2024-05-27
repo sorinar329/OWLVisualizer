@@ -41,7 +41,8 @@
                     <datalist id="datalistOptions">
                     </datalist>
                     <div class="input-group-append">
-                        <button class="btn btn-light" id="searchButton" type="button"><i class="bi bi-search"></i></button>
+                        <button class="btn btn-light" id="searchButton" type="button"><i class="bi bi-search"></i>
+                        </button>
                     </div>
                 </div>
             </form>
@@ -80,15 +81,24 @@
                         <div class="row justify-content-evenly" id="query-builder-select-row"
                              onchange="showSelectFields(this)">
                             <div class="col">
-                                <select class="custom-select custom-select-sm" id="query-builder-select1"></select>
+                                <select class="custom-select custom-select-sm" id="query-builder-select1"
+                                        title="Choose a subject"
+                                        onclick="populate_suggestions_triple(this, 1);"
+                                        onchange="selectedValue(this)"></select>
                             </div>
                             <div class="col">
                                 <select class="custom-select custom-select-sm d-none"
-                                        id="query-builder-select2"></select>
+                                        id="query-builder-select2"
+                                        title="Choose a predicate"
+                                        onclick="populate_suggestions_triple(this, 2);"
+                                        onchange="selectedValue(this)"></select>
                             </div>
                             <div class="col">
                                 <select class="custom-select custom-select-sm d-none"
-                                        id="query-builder-select3"></select>
+                                        id="query-builder-select3"
+                                        title="Choose an object"
+                                        onclick="populate_suggestions_triple(this, 3);"
+                                        onchange="selectedValue(this)"></select>
                             </div>
                             <div class="col-auto">
                                 <button class="btn btn-primary invisible" id="query-builder-add" title="Add"
@@ -151,16 +161,6 @@
                 }
                 transferInputToGroup(row, groupedTriples);
             });
-
-            const select1 = document.getElementById("query-builder-select1");
-            const select2 = document.getElementById("query-builder-select2");
-
-            select1.addEventListener("click", function () {
-                populate_suggestions_triple(row);
-            })
-            select2.addEventListener("click", function () {
-                populate_suggestions_triple(row);
-            })
         });
     });
 </script>
