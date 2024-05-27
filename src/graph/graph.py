@@ -22,8 +22,9 @@ class KnowledgeGraph:
         self._add_class_restrictions()
         self._color_graph()
 
-    def _add_node(self, node_id: str):
-        label = uri_or_literal_2label(self.kg, node_id)
+    def _add_node(self, node_id: str, label: str = ""):
+        if label == "":
+            label = uri_or_literal_2label(self.kg, node_id)
         self.graph_to_visualize.get("nodes").append(
             {'id': node_id, 'label': label})
 
@@ -55,31 +56,6 @@ class KnowledgeGraph:
         for s, p, o in classes_with_restrictions:
             self._handle_bnode(parent_node=o, parent_id=str(s), edge_label=uri_or_literal_2label(self.kg, p))
 
-    def _add_class_restrictions2(self):
-        classes_with_restrictions = [[s, p, o] for (s, p, o)
-                                     in self.kg.triples((None, RDFS.subClassOf, None))
-                                     if isinstance(o, BNode)]
-
-        triples = []
-        nodes = set()
-        for s, p, o in classes_with_restrictions:
-            nodes.add(o)
-            self._add_edge(source_id=s, target_id=o, edge_label=p)
-            recursive_pattern_matching(self.kg, o, triples)
-
-        for s, p, o in triples:
-            subject_id = s
-            object_id = o
-            if not isinstance(s, BNode):
-                subject_id = f'Res-{random.randint(0, 1000000000000)}#{s}'
-            if not isinstance(o, BNode):
-                object_id = f'Res-{random.randint(0, 1000000000000)}#{o}'
-            nodes.add(subject_id)
-            nodes.add(object_id)
-            self._add_edge(source_id=subject_id, target_id=object_id, edge_label=p)
-        for node in nodes:
-            self._add_node(node)
-
     def _list_recursion(self, parent_node, parent_id, edge_label):
 
         for triple in self.kg.triples((parent_node, None, None)):
@@ -96,6 +72,7 @@ class KnowledgeGraph:
     def _handle_bnode(self, parent_node, parent_id, edge_label):
         child_id = ''
         child_node = None
+        child_label = ''
         for s, p, o in self.kg.triples((parent_node, None, None)):
             assert isinstance(p, URIRef)
             if p == OWL.complementOf:
@@ -115,6 +92,7 @@ class KnowledgeGraph:
                 child_id = (f'Res-{random.randint(0, 1000000000000)}#'
                             f'{get_collection_name(p)}-{random.randint(0, 100000)}')
                 child_node = o
+                child_label = get_collection_name(p)
 
             elif p == OWL.onClass:
                 child_id = f'Res-{random.randint(0, 1000000000000)}#{o}'
@@ -123,7 +101,7 @@ class KnowledgeGraph:
                 edge_label += f'/{uri_or_literal_2label(self.kg, o)}'
 
         if child_id != '':
-            self._add_node(child_id)
+            self._add_node(child_id, child_label)
             if len(edge_label) > 1 and edge_label[0] == '/':
                 edge_label = edge_label[1:]
             self._add_edge(source_id=parent_id, target_id=child_id, edge_label=edge_label)
@@ -175,18 +153,3 @@ class KnowledgeGraph:
                 count[iri] = 1
 
         self.dominant_namespace = max(count, key=lambda key: count[key])
-
-# def get_instances(kg: Graph):
-#     nodes = set()
-#     for instance, _, cls in kg.triples((None, RDF.type, OWL.NamedIndividual)):
-#         nodes.add(instance)
-#
-#     for node in nodes:
-#         for _, _, o in kg.triples((node, RDF.type, None)):
-#             if o == OWL.NamedIndividual or URIRef('http://www.w3.org/2003/11/swrl#Imp'):
-#                 continue
-#             graph_to_visualize.get("edges").append({'from': str(node), 'to': str(o), 'label': 'is a'})
-#             graph_to_visualize.get("nodes").append({'id': str(node), 'label': uri_or_literal_2label(kg, node),
-#                                                     'shape': 'box'})
-
-# kg = KnowledgeGraph('data/food_cutting.owl')

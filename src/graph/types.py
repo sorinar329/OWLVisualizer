@@ -5,7 +5,7 @@ cardinality_types = {OWL.qualifiedCardinality: 'exactly', OWL.minQualifiedCardin
 
 restriction_type = {OWL.hasValue: 'value', OWL.someValuesFrom: 'some', OWL.allValuesFrom: 'only'}
 
-collection_type = {OWL.intersectionOf: 'Intersection', OWL.unionOf: 'Union'}
+collection_type = {OWL.intersectionOf: 'AND', OWL.unionOf: 'OR'}
 
 
 def get_cardinality_name(p: URIRef):
