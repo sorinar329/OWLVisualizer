@@ -47,7 +47,7 @@ function selectedValue(selectElement) {
 
 function populate_suggestions_triple(selectElement, idx) {
     fetchTriplesOnce().then(data => {
-        if (selectElement.value !== "") {
+        if (selectElement.innerHTML !== "") {
             return
         }
 
@@ -260,9 +260,9 @@ function showSelectFields(row) {
     } else {
         select1.title = "Choose a subject";
         select2.classList.add("d-none");
-        select2.selectedIndex = -1;
+        select2.innerHTML = "";
         select3.classList.add("d-none");
-        select3.selectedIndex = -1;
+        select3.innerHTML = "";
     }
 
     if (select2.value !== "") {
@@ -270,7 +270,7 @@ function showSelectFields(row) {
     } else {
         select2.title = "Choose a predicate";
         select3.classList.add("d-none");
-        select3.selectedIndex = -1;
+        select3.innerHTML = "";
     }
     if (select3.value === "") {
         select3.title = "Choose an object"
