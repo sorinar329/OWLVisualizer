@@ -1,4 +1,10 @@
-let graph;
+// Solution found at: https://stackoverflow.com/questions/59503468/prevent-bootstrap-form-to-submit-with-enter
+$("form").keypress(function (e) {
+    if (e.keyCode === 13) {
+        e.preventDefault();
+        return false;
+    }
+})
 
 function vizGraph() {
     fetch('/get_graph_data_rdf')
@@ -27,8 +33,13 @@ function vizGraph() {
             autocompleteInput(data);
             const searchButton = document.getElementById("searchButton");
             searchButton.addEventListener("click", function () {
-               viewNode(network, data);
+                viewNode(network, data);
             });
+            searchBar.addEventListener("keypress", function (event) {
+                if (event.key === "Enter") {
+                    viewNode(network, data);
+                }
+            })
 
 
         })
