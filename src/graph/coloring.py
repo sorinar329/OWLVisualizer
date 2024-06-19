@@ -1,5 +1,6 @@
 from rdflib import Graph
-from src.graph.graph_utility import get_all_actions_tasks, get_all_dispositions, get_all_tools
+from src.graph.graph_utility import get_all_actions_tasks, get_all_dispositions, get_all_cutting_tools, \
+    get_all_soma_tools, get_all_motions
 
 """
 Using the following color palette: https://coolors.co/palette/ee6055-60d394-aaf683-ffd97d-ff9b85
@@ -15,10 +16,20 @@ def color_classes(graph: dict):
         node.update({"color": "#60D394", "border": "black"})
 
 
+def color_motions(kg: Graph, graph: dict):
+    classes = set()
+    get_all_motions(kg, classes)
+    nodes = graph.get("nodes")
+    nodes = [x for x in nodes if x.get('id') in classes]
+    for cls in nodes:
+        cls.update({'color': {"background": "#EE6055", "border": "black"}})
+
+
 def color_parameters(graph: dict):
     for node in graph.get("nodes"):
         if node.get('id').startswith('Res'):
             node.update({'color': {"background": "#FFD97D", "border": "black"}})
+
 
 def color_edges(graph: dict):
     for edge in graph.get('edges'):
@@ -45,7 +56,8 @@ def color_dispositions(kg: Graph, graph: dict):
 
 def color_tools(kg: Graph, graph: dict):
     classes = set()
-    get_all_tools(kg, classes)
+    get_all_cutting_tools(kg, classes)
+    get_all_soma_tools(kg, classes)
     nodes = graph.get("nodes")
     nodes = [x for x in nodes if x.get('id') in classes]
     for cls in nodes:
