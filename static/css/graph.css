@@ -1,0 +1,10 @@
+#vis-network {
+            width: 100%;
+            height: 800px;
+            border: 1px solid lightgray;
+}
+
+.vis-network-modal {
+    width: 100%;
+    height: 250px;
+}
