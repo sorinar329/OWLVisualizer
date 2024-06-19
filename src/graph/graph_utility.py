@@ -6,7 +6,9 @@ from src.graph.types import is_cardinality, is_restriction, is_collection
 
 task = URIRef('http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#Task')
 disposition = URIRef('http://www.ease-crc.org/ont/SOMA.owl#Disposition')
-tool = URIRef('http://www.ease-crc.org/ont/food_cutting#Tool')
+cuttingTool = URIRef('http://www.ease-crc.org/ont/food_cutting#Tool')
+somaTool = URIRef('http://www.ease-crc.org/ont/SOMA.owl#DesignedTool')
+motion = URIRef('http://www.ease-crc.org/ont/mixing#Motion')
 
 
 def uri_or_literal_2label(knowledge_graph: Graph, node: Union[URIRef, Literal, Node, str]) -> str:
@@ -19,10 +21,10 @@ def uri_or_literal_2label(knowledge_graph: Graph, node: Union[URIRef, Literal, N
         return str(node)
     else:
         label = str(node)
-        # if soma_ns in label:
-        #     label = label.replace(soma_ns, 'SOMA:')
-        # if dul_ns in label:
-        #     label = label.replace(dul_ns, 'DUL:')
+        if soma_ns in label:
+            label = label.replace(soma_ns, 'SOMA:')
+        if dul_ns in label:
+            label = label.replace(dul_ns, 'DUL:')
         if '#' in str(node):
             label = label.split('#')[-1]
             if '/' in label:
@@ -90,7 +92,21 @@ def get_all_dispositions(knowledge_graph: Graph, classes: set, parent_class=disp
         get_all_dispositions(knowledge_graph, classes, triple[0])
 
 
-def get_all_tools(knowledge_graph: Graph, classes: set, parent_class=tool):
+def get_all_cutting_tools(knowledge_graph: Graph, classes: set, parent_class=cuttingTool):
+    for triple in knowledge_graph.triples((None, RDFS.subClassOf, parent_class)):
+        classes.add(str(triple[0]))
+        classes.add(str(triple[2]))
+        get_all_dispositions(knowledge_graph, classes, triple[0])
+
+
+def get_all_soma_tools(knowledge_graph: Graph, classes: set, parent_class=somaTool):
+    for triple in knowledge_graph.triples((None, RDFS.subClassOf, parent_class)):
+        classes.add(str(triple[0]))
+        classes.add(str(triple[2]))
+        get_all_dispositions(knowledge_graph, classes, triple[0])
+
+
+def get_all_motions(knowledge_graph: Graph, classes: set, parent_class=motion):
     for triple in knowledge_graph.triples((None, RDFS.subClassOf, parent_class)):
         classes.add(str(triple[0]))
         classes.add(str(triple[2]))
