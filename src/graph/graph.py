@@ -123,6 +123,7 @@ class KnowledgeGraph:
         coloring.color_dispositions(self.kg, self.graph_to_visualize)
         coloring.color_tools(self.kg, self.graph_to_visualize)
         coloring.color_instances(self.graph_to_visualize)
+        coloring.color_motions(self.kg, self.graph_to_visualize)
 
     def _set_dominant_namespace(self):
         iris = []
