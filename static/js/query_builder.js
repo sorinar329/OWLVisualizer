@@ -130,7 +130,7 @@ function populate_suggestions_triple(selectElement, idx) {
 
 function groupOptions(currentSelect, idx) {
     if (idx === 1 || idx === 3) {
-        const classOptions = ["Classes", "Instances", "Restrictions", "Other"];
+        const classOptions = ["Classes", "Restrictions"];
         classOptions.forEach(option => {
                 const optgroup = document.createElement("optgroup");
                 optgroup.label = option;
@@ -172,8 +172,6 @@ function sendSelectedValues() {
         .then(data => {
         })
         .catch(error => console.error('Error sending data to server:', error));
-
-    document.getElementById("query-builder-run").classList.remove("invisible");
 }
 
 function deleteRow(button) {
@@ -294,91 +292,110 @@ function showSelectFields(row) {
     }
 }
 
+function createGraphDropDown(groupName) {
+    const navItem = document.createElement("li");
+    navItem.className = "nav-item dropdown";
+    navItem.id = groupName + "-navItem";
 
-function createGroupedTripleCard(modalBody, groupName) {
-    const card = document.createElement("div");
-    card.className = "card";
-    card.id = groupName;
-    card.title = groupName
+    const navLink = document.createElement("a");
+    navLink.className = "nav-link dropdown-toggle active";
 
-    const cardHeader = document.createElement("div");
-    cardHeader.className = "card-header";
-    cardHeader.id = "cardHeader" + (modalBody.children.length);
+    navLink.setAttribute('data-toggle', 'dropdown');
+    navLink.href = "#";
+    navLink.setAttribute('role', 'button');
+    navLink.setAttribute('aria-haspopup', 'true');
+    navLink.setAttribute('aria-expanded', 'false');
+    navLink.textContent = groupName;
 
-    const header = document.createElement("h4");
-    header.className = "card-title";
-    header.id = "cardTitle" + (modalBody.children.length);
-    header.textContent = groupName;
+    const dropDown = document.createElement("div");
+    dropDown.id = groupName + "-dropdown";
+    dropDown.className = "dropdown-menu";
 
-    const cardBody = document.createElement("div");
-    cardBody.className = "card-body";
-    cardBody.id = "cardBody" + (modalBody.children.length);
+    const graphItem = document.createElement("a");
+    graphItem.id = groupName + "-view";
+    graphItem.className = "dropdown-item";
+    graphItem.href = "#";
+    graphItem.textContent = "View Graph";
 
+    const sparqlItem = document.createElement("a");
+    sparqlItem.id = groupName + "-sparql";
+    sparqlItem.className = "dropdown-item";
+    sparqlItem.href = "#";
+    sparqlItem.textContent = "SPARQL Query";
 
-    cardHeader.appendChild(header);
-    card.appendChild(cardHeader);
-    card.appendChild(cardBody);
-    modalBody.appendChild(card);
+    dropDown.appendChild(graphItem);
+    dropDown.appendChild(sparqlItem);
 
-    return card
+    navItem.appendChild(navLink);
+    navItem.appendChild(dropDown);
+
+    const navTab = document.getElementById("query-builder-nav-tab");
+    navTab.appendChild(navItem);
+
+    return navItem;
 }
 
-function displaySelectedTriples(rowName, lengthChildren) {
-    const newSelectRow = document.createElement("div");
-    newSelectRow.className = "row";
-    newSelectRow.id = rowName + "-" + "select-row" + (lengthChildren + 1);
-
-    const deleteCol = document.createElement("div");
-    deleteCol.className = "col-auto";
-
-    const deleteButton = document.createElement("button");
-    deleteButton.className = "btn btn-danger btn-sm";
-    deleteButton.id = "button" + (lengthChildren + 1);
-    deleteButton.title = "Delete";
-    deleteButton.innerHTML = '<i class="bi bi-x-lg"></i>';
-    deleteButton.addEventListener("click", function () {
-        deleteRow(this);
-    });
-
-    deleteCol.appendChild(deleteButton);
-    for (let i = 0; i < 3; i++) {
-
-        const newSelect = document.createElement("select");
-        newSelect.className = "custom-select custom-select-sm";
-        newSelect.disabled = true;
-        newSelect.id = rowName.title + "-" + "select" + ((3 * lengthChildren) + (i + 1));
-
-        const newSelectContainer = document.createElement("div");
-        newSelectContainer.className = "col";
-        newSelectContainer.appendChild(newSelect);
-
-        newSelectRow.appendChild(newSelectContainer);
+function createTabPane(groupName) {
+    const tabContent = document.getElementById("query-builder-tab-content");
+    let tabPane = document.createElement("div");
+    if (document.getElementById(groupName + "-tab") !== null) {
+        Array.from(tabPane.children).forEach(child => {
+            child.innerHTML = "";
+        })
+        return;
     }
 
-    newSelectRow.appendChild(deleteCol);
-    return newSelectRow;
+    tabPane = document.createElement("div");
+    tabPane.className = "tab-pane show active";
+    tabPane.id = groupName + "-tab";
+    tabContent.appendChild(tabPane);
+
 }
 
-function transferInputToGroup(row, card) {
+function createGraphVizTabContent(row, groupName) {
+    fetch('/query_builder_graph_vis')
+        .then(response => response.json())
+        .then(data => {
+            const tabPane = document.getElementById(groupName + "-tab");
+            let graphContainer = document.getElementById(groupName + "-network")
+            if (graphContainer === null) {
+                graphContainer = document.createElement("div");
+                graphContainer.id = groupName + "-network";
+                graphContainer.className = "vis-network-modal";
+                graphContainer.setAttribute("aria-labelledby", groupName + "-view");
 
-    const cardBody = card.getElementsByClassName("card-body")[0];
-    const groupRow = displaySelectedTriples(card.title, cardBody.children.length);
+                tabPane.appendChild(graphContainer);
+                const tabContent = document.getElementById("query-builder-tab-content");
+                tabContent.appendChild(tabPane);
+            }
 
-    for (let i = 0; i < 3; i++) {
-        let selectField = row.children.item(i).children[0];
-        let groupSelectField = groupRow.children.item(i).children[0]
-        const option = document.createElement('option');
-        option.value = selectField.value;
-        option.textContent = selectField.options[selectField.selectedIndex].textContent;
-        groupSelectField.appendChild(option);
+            const options = {
+                layout: {
+                    improvedLayout: true
+                },
+            };
+            const nodesDataset = new vis.DataSet(data.nodes)
+            const edgesDataset = new vis.DataSet(data.edges)
+            new vis.Network(graphContainer, {nodes: nodesDataset, edges: edgesDataset}, options);
 
-        groupSelectField.title = option.textContent;
-        selectField.innerHTML = '';
+            for (let i = 0; i < 3; i++) {
+                let selectField = row.children.item(i).children[0];
+                selectField.innerHTML = '';
+            }
+            showSelectFields(row);
+        })
+        .catch(error => console.error('Error fetching data:', error));
+}
 
-    }
-
-    cardBody.appendChild(groupRow);
-    showSelectFields(row);
+function createSPARQLTabContent(groupName) {
+    const textArea = document.createElement("textarea");
+    textArea.id = groupName + "-sparql-textarea";
+    textArea.className = "form-control";
+    textArea.setAttribute("rows", "10");
+    textArea.setAttribute("aria-labelledby", groupName + "-sparql");
+    textArea.style.display = "None";
+    const tab = document.getElementById("Hierarchy-tab");
+    tab.appendChild(textArea);
 }
 
 function getTripleType(modalBody, row) {
@@ -392,26 +409,8 @@ function getTripleType(modalBody, row) {
             return "Equivalent Classes";
         }
     } else {
-        if (!sub.startsWith("Res") && obj.startsWith("Res")) {
-            let tripleType = "Restriction-" + restrictionIdx;
-            restrictionIdx++;
-            return tripleType;
-        } else if (sub.startsWith("Res")) {
-            let cards = modalBody.getElementsByClassName("card");
-            // 0th element is general card to select classes and relations
-            for (let i = 1; i < cards.length; i++) {
-                let cardBody = cards[i].getElementsByClassName("card-body")[0];
-                let selectRows = cardBody.getElementsByClassName("row");
-                for (let j = 0; j < selectRows.length; j++) {
-                    let selectFields = selectRows[j].getElementsByTagName("select");
-                    for (let k = 0; k < selectFields.length; k++) {
-                        if (selectFields[k].value === sub) {
-                            return cards[i].id;
-                        }
-                    }
-                }
-            }
-        }
+        let tripleType = "Restriction-" + restrictionIdx;
+        restrictionIdx++;
+        return tripleType;
     }
-
 }

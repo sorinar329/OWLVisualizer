@@ -10,7 +10,7 @@ function vizGraph() {
     fetch('/get_graph_data_rdf')
         .then(response => response.json())
         .then(data => {
-            const container = document.getElementById('mynetwork');
+            const container = document.getElementById('vis-network');
             const options = {
                 physics: {
                     adaptiveTimestep: true,

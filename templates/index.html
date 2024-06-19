@@ -7,13 +7,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css"/>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-    <style>
-        #mynetwork {
-            width: 100%;
-            height: 800px;
-            border: 1px solid lightgray;
-        }
-    </style>
+    <link href="../static/css/graph.css" rel="stylesheet">
 </head>
 <body>
 <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
@@ -64,7 +58,7 @@
 <!-- Modal -->
 <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
      aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="exampleModalLongTitle">Query Builder</h5>
@@ -109,34 +103,31 @@
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary invisible" id="query-builder-run" onclick="runAndOpen()">
-                    Run
-                </button>
+                <div class="card">
+                    <div class="card-body">
+                        <ul class="nav nav-tab" id="query-builder-nav-tab"></ul>
+                        <div class="tab-content" id="query-builder-tab-content"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 
-<div id="mynetwork"></div>
+<div id="vis-network" class="vis-network"></div>
 
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
+        crossorigin="anonymous"></script>
 
 <script src="/static/js/graphviz.js"></script>
 <script src="/static/js/query_builder.js"></script>
 <script src="/static/js/utility.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
-
-<script>
-    function runAndOpen() {
-        window.open('/query_builder_redirect', '_blank');
-        $('#exampleModalCenter').modal('hide');
-    }
-</script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -156,14 +147,38 @@
             });
             button.addEventListener("click", function () {
                 let groupName = getTripleType(modalBody, row);
-                let groupedTriples = document.getElementById(groupName);
-                if (groupedTriples === null) {
-                    groupedTriples = createGroupedTripleCard(modalBody, groupName);
+                let navItem = document.getElementById(groupName + "-navItem");
+                console.log(navItem);
+                if (navItem === null) {
+                    createGraphDropDown(groupName);
+                    createTabPane(groupName);
                 }
-                transferInputToGroup(row, groupedTriples);
+                createGraphVizTabContent(row, groupName);
+                createSPARQLTabContent(groupName);
+            });
+            $(document).on('click', '.dropdown-item', function () {
+                const id = $(this).attr('id');
+                let content = document.querySelector(`[aria-labelledby="${id}"]`);
+                if (content) {
+                    document.querySelectorAll('.tab-pane').forEach(tabPane => {
+                        tabPane.style.display = "none";
+                    });
+
+                    const tabPane = content.parentNode
+                    const childElements = tabPane.children;
+                    console.log(childElements);
+                    for (let x = 0; x < childElements.length; x++) {
+                        childElements[x].style.display = "none";
+                    }
+
+                    tabPane.style.display = "block";
+                    content.style.display = "block";
+                    console.log(content);
+                }
             });
         });
     });
 </script>
+
 </body>
 </html>
