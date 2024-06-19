@@ -4,7 +4,7 @@ from query_builder import query_builder
 from urllib.parse import unquote
 
 app = Flask(__name__)
-kg_instance = graph.graph.KnowledgeGraph('data/food_cutting.owl')
+kg_instance = graph.graph.KnowledgeGraph('data/mixing.owl')
 qb = query_builder.get_query_builder(kg_instance)
 
 
@@ -28,12 +28,17 @@ def suggest_triples():
         print("Received data")
         response = request.json['selectedValues']
         triple = [unquote(response['firstSelect']), unquote(response['secondSelect']), unquote(response['thirdSelect'])]
-        print(triple)
         qb.set_triple(triple)
-        return jsonify(qb.mock_suggestion2())
+        #print(triple)
+        return jsonify("suggestions")
+
     else:
         print("sending data")
-        suggestions = qb.mock_suggestion2()
+        while True:
+            suggestions = qb.mock_suggestion2()
+            print(len(suggestions.get("subjects")))
+            if len(suggestions.get('subjects')) > 0:
+                break
         return jsonify(suggestions)
 
 
@@ -52,8 +57,13 @@ def redirect2_query_builder_vis():
 
 @app.route('/query_builder_graph_vis', methods=["GET", "POST"])
 def visualize_query_builder_filtered_graph():
-    graph_visualize = qb.get_filtered_graph()
-    print(f'Graph{graph_visualize}')
+    while True:
+        triple = qb.get_latest_triple()
+        if triple is not None:
+            break
+    #print(f'Latest triple: {triple}')
+    graph_visualize = qb.get_partial_viz_graph(triple)
+    #print(f'Graph{graph_visualize}')
     return jsonify({'nodes': graph_visualize.get("nodes"), 'edges': graph_visualize.get("edges")})
 
 
