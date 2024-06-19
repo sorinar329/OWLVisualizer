@@ -298,7 +298,8 @@ function createGraphDropDown(groupName) {
     navItem.id = groupName + "-navItem";
 
     const navLink = document.createElement("a");
-    navLink.className = "nav-link dropdown-toggle active";
+    navLink.id = groupName + "-navLink"
+    navLink.className = "nav-link dropdown-toggle";
 
     navLink.setAttribute('data-toggle', 'dropdown');
     navLink.href = "#";
@@ -336,6 +337,10 @@ function createGraphDropDown(groupName) {
 }
 
 function createTabPane(groupName) {
+    document.querySelectorAll('.tab-pane').forEach(tabPane => {
+                        tabPane.style.display = "none";
+                    });
+
     const tabContent = document.getElementById("query-builder-tab-content");
     let tabPane = document.createElement("div");
     if (document.getElementById(groupName + "-tab") !== null) {
@@ -394,7 +399,7 @@ function createSPARQLTabContent(groupName) {
     textArea.setAttribute("rows", "10");
     textArea.setAttribute("aria-labelledby", groupName + "-sparql");
     textArea.style.display = "None";
-    const tab = document.getElementById("Hierarchy-tab");
+    const tab = document.getElementById(groupName + "-tab");
     tab.appendChild(textArea);
 }
 
