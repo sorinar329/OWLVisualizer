@@ -22,19 +22,18 @@ triples = [['http://www.ease-crc.org/ont/SOMA.owl#Dicing', 'subClassOf', 'Res-60
 
 
 class SparqlGenerator:
-    def __init__(self, knowledge_graph: rdflib.Graph, triples: list[list]):
+    def __init__(self, knowledge_graph: rdflib.Graph):
         self.knowledge_graph = knowledge_graph
-        self.triples = triples
         self.sparql_triples = []
         self.sparql_prefixes = set()
         self.sparql_variables = {}
         self.node_counter = {'bnode': 0, 'head': 0, 'tail': 0}
         self.sparql_query = ""
 
-    def generate_sparql_query(self):
+    def generate_sparql_query(self, triples):
         class_triples = []
 
-        cls = self.triples[0][0]
+        cls = triples[0][0]
 
         for triple in self.knowledge_graph.triples((URIRef(cls), None, None)):
             restrictions = []
@@ -43,7 +42,7 @@ class SparqlGenerator:
         class_restrictions = [triples2 for triples2 in class_triples if len(triples2) > 0]
 
         objs = []
-        for s, p, o in self.triples:
+        for s, p, o in triples:
             if o.startswith('Res'):
                 objs.append(o.split('#', 1)[1])
             else:
@@ -62,24 +61,6 @@ class SparqlGenerator:
         for s, p, o in self.knowledge_graph.triples((None, None, matched_triples[0][0])):
             matched_triples.insert(0, [s, p, o])
 
-        # for i in range(len(self.triples)):
-        #     _, p, _ = self.triples[i]
-        #     objects = p.split(' ')
-        #     objects.append(objs[i])
-        #     print(objects)
-        #     for o in objects:
-        #         if types.get_cardinality_type(o):
-        #             print(types.get_cardinality_type(o))
-        #         if 'AND' in o:
-        #            types.get_collection_type('AND')
-        #         if 'OR' in o:
-        #             types.get_restriction_type('OR')
-        #         if types.get_restriction_type(o):
-        #             print(types.get_restriction_type(o))
-
-        for triple in matched_triples:
-            print(triple)
-
         for triple in matched_triples:
             self.add_triple(triple)
 
@@ -92,7 +73,7 @@ class SparqlGenerator:
             self.sparql_query += f'{s} {p} {o}.\n'
 
         self.sparql_query += '}'
-        print(self.sparql_query)
+        return self.sparql_query
 
     def add_triple(self, triple: tuple):
         sparql_triple = []
@@ -136,6 +117,6 @@ class SparqlGenerator:
     # TODO: Add prefixes not defined in PREFIX_MAP
 
 
-knowledge_graph = rdflib.Graph().parse("../data/food_cutting.owl")
-gen = SparqlGenerator(knowledge_graph, triples)
-gen.generate_sparql_query()
+#knowledge_graph = rdflib.Graph().parse("../data/food_cutting.owl")
+#gen = SparqlGenerator(knowledge_graph)
+#gen.generate_sparql_query(triples)

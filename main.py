@@ -1,6 +1,6 @@
 from flask import Flask, render_template, jsonify, request
 import graph.graph
-from query_builder import query_builder
+from query_builder import query_builder, sparql_generator
 from urllib.parse import unquote
 
 app = Flask(__name__)
@@ -50,16 +50,18 @@ def clear_triples():
     return jsonify({'message': 'Cleared triples'}), 200
 
 
-@app.route('/query_builder_redirect')
-def redirect2_query_builder_vis():
-    return render_template('queryBuilderViz.html')
-
-
 @app.route('/query_builder_graph_vis', methods=["GET", "POST"])
 def visualize_query_builder_filtered_graph():
     if qb.has_suggestions():
         graph_visualize = qb.get_partial_viz_graph()
         return jsonify({'nodes': graph_visualize.get("nodes"), 'edges': graph_visualize.get("edges")})
+
+@app.route('/sparql_query_generator')
+def send_sparql_query():
+    sparql_gen = sparql_generator.SparqlGenerator(kg_instance.get_rdflib_graph())
+    triples = qb.get_latest_triples()
+    sparql_query = sparql_gen.generate_sparql_query(triples)
+    return jsonify(sparql_query)
 
 
 if __name__ == '__main__':

@@ -345,14 +345,20 @@ function createGraphVizTabContent(row, groupName) {
 }
 
 function createSPARQLTabContent(groupName) {
-    const textArea = document.createElement("textarea");
-    textArea.id = groupName + "-sparql-textarea";
-    textArea.className = "form-control";
-    textArea.setAttribute("rows", "10");
-    textArea.setAttribute("aria-labelledby", groupName + "-sparql");
-    textArea.style.display = "None";
-    const tab = document.getElementById(groupName + "-tab");
-    tab.appendChild(textArea);
+    fetch('/sparql_query_generator')
+        .then(response => response.json())
+        .then(data => {
+            const textArea = document.createElement("textarea");
+            textArea.id = groupName + "-sparql-textarea";
+            textArea.className = "form-control";
+            textArea.setAttribute("rows", "10");
+            textArea.setAttribute("aria-labelledby", groupName + "-sparql");
+            textArea.style.display = "None";
+            textArea.textContent = data
+            const tab = document.getElementById(groupName + "-tab");
+            tab.appendChild(textArea);
+            console.log(data);
+        }).catch(error => console.error('Error fetching data:', error));
 }
 
 function getTripleType(modalBody, row) {
