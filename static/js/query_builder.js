@@ -175,7 +175,11 @@ function sendSelectedValues() {
 }
 
 function clearSelectedOptions() {
-    let body = document.getElementById("query-builder-body");
+    const navTab = document.getElementById("query-builder-nav-tab");
+    const tabContent = document.getElementById("query-builder-tab-content");
+    navTab.innerHTML = '';
+    tabContent.innerHTML = '';
+
     let selectRow = document.getElementById("query-builder-select-row");
     for (let i = 0; i < 3; i++) {
         let selectField = selectRow.children.item(i).children[0];
@@ -183,10 +187,6 @@ function clearSelectedOptions() {
             selectField.classList.add("d-none")
         }
         selectField.innerHTML = '';
-    }
-    for (let i = 1; i < body.children.length; i++) {
-        let child = body.children[i];
-        body.removeChild(child);
     }
     fetchedData = null;
     [sub, pred, obj] = ["", "", ""];
@@ -290,8 +290,8 @@ function createGraphDropDown(groupName) {
 
 function createTabPane(groupName) {
     document.querySelectorAll('.tab-pane').forEach(tabPane => {
-                        tabPane.style.display = "none";
-                    });
+        tabPane.style.display = "none";
+    });
 
     const tabContent = document.getElementById("query-builder-tab-content");
     let tabPane = document.createElement("div");
