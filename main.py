@@ -57,14 +57,9 @@ def redirect2_query_builder_vis():
 
 @app.route('/query_builder_graph_vis', methods=["GET", "POST"])
 def visualize_query_builder_filtered_graph():
-    while True:
-        triple = qb.get_latest_triple()
-        if triple is not None:
-            break
-    #print(f'Latest triple: {triple}')
-    graph_visualize = qb.get_partial_viz_graph(triple)
-    #print(f'Graph{graph_visualize}')
-    return jsonify({'nodes': graph_visualize.get("nodes"), 'edges': graph_visualize.get("edges")})
+    if qb.has_suggestions():
+        graph_visualize = qb.get_partial_viz_graph()
+        return jsonify({'nodes': graph_visualize.get("nodes"), 'edges': graph_visualize.get("edges")})
 
 
 if __name__ == '__main__':

@@ -174,55 +174,6 @@ function sendSelectedValues() {
         .catch(error => console.error('Error sending data to server:', error));
 }
 
-function deleteRow(button) {
-    let row = button.parentNode.parentNode;
-    let cardBody = row.parentNode;
-
-    let deleteTriples = [];
-
-    let index = Array.prototype.indexOf.call(cardBody.children, row);
-
-    while (cardBody.children.length > index) {
-        row = cardBody.children[index];
-        let triples = [];
-        for (let j = 0; j < 3; j++) {
-            let selectField = row.children.item(j).children[0];
-            triples.push(selectField.value);
-        }
-        deleteTriples.push(triples);
-        cardBody.removeChild(row);
-    }
-
-    if (cardBody.children.length === 0) {
-        let queryBuilderBody = document.getElementById("query-builder-body");
-        let card = cardBody.parentNode;
-        queryBuilderBody.removeChild(card);
-    }
-
-    fetch('/query_builder_clear', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({"clearTriples": deleteTriples}) // Leeres Objekt als Nachricht
-    })
-        .then(response => {
-            if (response.ok) {
-                // Erfolgreich gelöscht
-                console.log("Cleared triples");
-            } else {
-                // Fehler beim Löschen
-                console.error('Fehler beim Löschen der Triples:', response.statusText);
-            }
-        })
-        .catch(error => {
-            console.error('Fehler beim Löschen der Triples:', error);
-        });
-
-
-    console.log(deleteTriples);
-}
-
 function clearSelectedOptions() {
     let body = document.getElementById("query-builder-body");
     let selectRow = document.getElementById("query-builder-select-row");
@@ -238,6 +189,7 @@ function clearSelectedOptions() {
         body.removeChild(child);
     }
     fetchedData = null;
+    [sub, pred, obj] = ["", "", ""];
 
     fetch('/query_builder_clear', {
         method: 'POST',

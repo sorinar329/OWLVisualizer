@@ -13,122 +13,114 @@ class QueryBuilder:
     def __init__(self, knowledge_graph: graph.KnowledgeGraph):
         self.kg_instance = knowledge_graph
         self.kg = knowledge_graph.get_rdflib_graph()
-        self.triples = []
-        self.latest_triple = None
+        self.chosen_class = None
+        self.name2triples = {}
+        self.restriction_idx = 0
 
     def set_triple(self, triple):
+        if len(self.name2triples) == 0:
+            self.chosen_class = triple[0]
         if triple[2].startswith("Res"):
-            self.latest_triple = triple
-            self.triples.append(triple)
+            triple_name = f'Restriction{self.restriction_idx}'
+            self.restriction_idx += 1
+            triples = [triple]
             filtered_edges = []
             self.get_restriction(triple[2], filtered_edges)
             for edge in filtered_edges:
-                self.triples.append([edge['from'], edge['label'], edge['to']])
+                triples.append([edge['from'], edge['label'], edge['to']])
+
+            self.name2triples.update({triple_name: triples})
         else:
-            self.latest_triple = triple
-            self.triples.append(triple)
+            if self.name2triples.get("Hierarchy") is None:
+                self.name2triples.update({"Hierarchy": [triple]})
+            else:
+                triples = self.name2triples.pop("Hierarchy")
+                triples.append(triple)
+                self.name2triples.update({'Hierarchy': triples})
 
-    def clear_triples(self, clear_triples: list = None):
-        if clear_triples is []:
-            self.triples = []
-        else:
-            for triple in clear_triples:
-                self.triples.remove(triple)
+    def clear_triples(self):
+        self.chosen_class = None
+        self.name2triples = {}
+        self.restriction_idx = 0
 
-    def get_filtered_graph(self):
-        filtered_graph = {'nodes': [], 'edges': []}
-        nodes = set()
-        original_nodes = self.kg_instance.get_graph_to_visualize().get("nodes")
-        original_edges = self.kg_instance.get_graph_to_visualize().get("edges")
-        for triple in self.triples:
-            nodes.add(triple[0])
-            nodes.add(triple[2])
-            edge_label = triple[1]
-            if edge_label == ' ':
-                edge_label = ''
-            edge = [edge for edge in original_edges if triple[0] == edge['from'] and edge_label == edge['label']
-                    and triple[2] == edge['to']][0]
-            filtered_graph.get('edges').append(edge)
-
-        filtered_nodes = [node for node in original_nodes if node['id'] in nodes]
-        filtered_graph.get('nodes').extend(filtered_nodes)
-        return filtered_graph
-
-    def get_typeof_node(self, node: URIRef):
-        node_type = {OWL.Class: 'Classes', RDF.type: 'Is a', OWL.DatatypeProperty: 'Attributes',
-                     OWL.ObjectProperty: 'Relations', OWL.equivalentClass: 'Relations', RDFS.subClassOf: 'Relations',
-                     RDFS.label: 'Labels', OWL.NamedIndividual: 'Instances'}
-
-        if node in node_type:
-            return node_type[node]
-        else:
-            for o in self.kg.objects(node, RDF.type):
-                if node_type[o] is not None:
-                    return node_type[o]
-                else:
-                    return 'Other'
-
-    def get_typeof_predicate(self, predicate: str):
-        try:
-            node_type = {'subClassOf': 'Relations'}
-            return node_type[predicate]
-
-        except:
-            return 'Other'
-
-    def get_hierarchical_triples(self):
-        triples = []
+    def suggest_hierarchy(self):
         edges = self.kg_instance.get_graph_to_visualize().get("edges")
 
         filtered_hierarchy = []
 
-        self.get_hierarchy(filtered_hierarchy)
-        for edge in filtered_hierarchy:
-            for edge2 in edges:
-                if edge['from'] == edge2['to'] or edge['to'] == edge2['from']:
-                    triples.append([edge2['from'], edge2['label'], edge2['to']])
-        triples = [triple for triple in triples if triple not in self.triples]
-        return triples
+        if self.name2triples.get("Hierarchy") is None:
+            chosen_class = self.chosen_class
+            hierarchy_triples = [[edge['from'], edge['label'], edge['to']] for edge in edges if
+                                 edge['from'] == chosen_class and not edge['to'].startswith("Res")]
+            filtered_hierarchy.extend(hierarchy_triples)
+            return filtered_hierarchy
 
-    def get_restriction_triples(self):
+        else:
+            hierarchy_triples = self.name2triples.get("Hierarchy")
+            hierarchy_triples2 = [[edge['from'], edge['label'], edge['to']] for edge in edges if
+                                  not edge['from'].startswith("Res")
+                                  and not edge['to'].startswith("Res")]
+
+            for triple in hierarchy_triples:
+                for triple2 in hierarchy_triples2:
+                    if triple[0] != triple2[0] and triple[2] == triple2[2]:
+                        filtered_hierarchy.append(triple2)
+                    if triple[2] == triple2[0]:
+                        filtered_hierarchy.append(triple2)
+                    if triple[0] != triple2[0] and triple[0] == triple2[2]:
+                        filtered_hierarchy.append(triple2)
+            for triple in hierarchy_triples:
+                if triple in filtered_hierarchy:
+                    filtered_hierarchy.remove(triple)
+
+            return filtered_hierarchy
+
+    def suggest_restrictions(self):
         triples = []
-        chosen_class = self.triples[0][0]
+        chosen_class = self.chosen_class
         edges = self.kg_instance.get_graph_to_visualize().get("edges")
-        restriction_triples = [edge for edge in edges if
-                               edge['from'] == chosen_class and edge['to'].startswith('Res')]
+        restriction_triples = [[edge['from'], edge['label'], edge['to']] for edge in edges if
+                               edge['from'] == chosen_class and edge['to'].startswith("Res")]
 
-        for s, p, o in self.triples:
-            for edge in restriction_triples:
-                if o == edge['to']:
-                    restriction_triples.remove(edge)
-        for edge in restriction_triples:
-            triples.append([edge['from'], edge['label'], edge['to']])
+        for r in range(self.restriction_idx):
+            name = f'Restriction{r}'
+            first_triple = self.name2triples.get(name)[0]
+            restriction_triples.remove(first_triple)
+
+        triples.extend(restriction_triples)
         return triples
+
+    def has_suggestions(self):
+        return len(self.mock_suggestion2()) > 0
 
     def mock_suggestion2(self):
         edges = self.kg_instance.get_graph_to_visualize().get("edges")
         suggest_triples = []
-        if len(self.triples) == 0:
+        whirlstorm_diving = "http://www.ease-crc.org/ont/mixing#WhirlstormThenCircularDivingToInner"
+        triple = [edge for edge in edges if edge['from'] == whirlstorm_diving and edge['label'] == "subClassOf"][0]
+        triple2 = [edge for edge in edges if edge['from'] == whirlstorm_diving and edge['label'] == "equivalentClass"][0]
+        as_list = [triple['from'], triple['label'], triple['to']]
+        as_list2 = [triple2['from'], triple2['label'], triple2['to']]
+        self.set_triple(as_list)
+        self.set_triple(as_list2)
+        self.set_triple(['http://www.ease-crc.org/ont/mixing#CompoundMotion', 'subClassOf', 'http://www.ease-crc.org/ont/mixing#Motion'])
+        self.set_triple(['http://www.ease-crc.org/ont/mixing#MixingMotion', 'subClassOf', 'http://www.ease-crc.org/ont/mixing#Motion'])
+
+        if len(self.name2triples) == 0:
             for edge in edges:
                 if edge['from'].startswith("Res"):
                     continue
                 suggest_triples.extend([[edge['from'], edge['label'], edge['to']]])
 
         else:
-            suggest_triples.extend(self.get_restriction_triples())
-            suggest_triples.extend(self.get_hierarchical_triples())
+            suggest_triples.extend(self.suggest_restrictions())
+            suggest_triples.extend(self.suggest_hierarchy())
+            print(list(self.name2triples.keys()))
+
         mocked_solution = {'subjects': []}
         for triple in suggest_triples:
-            type_triple = ''
-
-            if (triple[1] == RDFS.subClassOf or triple[1] == OWL.equivalentClass) and not triple[2].startswith('Res'):
-                type_triple = 'Hierarchy'
-            elif triple[0].startswith('Res') or triple[2].startswith('Res'):
-                type_triple = 'Restriction'
-
             s = [subject for subject in mocked_solution['subjects'] if subject['iri'] == str(triple[0])]
             if len(s) == 0:
-                # type_subject = self.get_typeof_node(URIRef(triple[0]))
                 subject = {'iri': str(triple[0]),
                            'label': graph_utility.uri_or_literal_2label(self.kg, triple[0]),
                            'type': 'Classes', 'predicates': []}
@@ -140,8 +132,6 @@ class QueryBuilder:
             p = [predicate for predicate in s['predicates'] if predicate['iri'] == str(triple[1])]
 
             if len(p) == 0:
-                type_predicate = self.get_typeof_predicate(triple[1])
-
                 predicate = {'iri': str(triple[1]),
                              'label': triple[1],
                              'type': 'Relations', 'objects': []}
@@ -149,45 +139,32 @@ class QueryBuilder:
                 p = predicate
             else:
                 p = p[0]
-            # type_object = self.get_typeof_node(URIRef(triple[2]))
             obj = {'iri': str(triple[2]), 'label': graph_utility.uri_or_literal_2label(self.kg, triple[2]),
                    'type': 'Classes'}
             p['objects'].append(obj)
         return mocked_solution
 
-    def get_partial_viz_graph(self, triple):
-        filtered_edges = []
-        s, p, o = triple
+    def get_partial_viz_graph(self):
+        triples = self.get_latest_triples()
         graph_viz = self.kg_instance.get_graph_to_visualize()
-
-        edge = [edge for edge in graph_viz.get("edges") if
-                edge['from'] == s and edge['label'] == p
-                and edge['to'] == o][0]
-        o = edge.get('to')
-        if o.startswith('Res'):
-            filtered_edges.append(edge)
-            self.get_restriction(o, filtered_edges)
-            for edge in filtered_edges:
-                print(edge['from'], edge['label'], edge['to'])
-        else:
-            self.get_hierarchy(filtered_edges)
+        graph_nodes = graph_viz.get("nodes")
+        graph_edges = graph_viz.get("edges")
         filtered_graph = {'nodes': [], 'edges': []}
         nodes = set()
-        original_nodes = self.kg_instance.get_graph_to_visualize().get("nodes")
-        original_edges = self.kg_instance.get_graph_to_visualize().get("edges")
-        for edge in filtered_edges:
-            nodes.add(edge['from'])
-            nodes.add(edge['to'])
-            edge_label = edge['label']
-            if edge_label == ' ':
-                edge_label = ''
+        filtered_edges = []
+        for triple in triples:
+            for edge in graph_edges:
+                if triple[0] == edge['from'] and triple[1] == edge['label'] and triple[2] == edge['to']:
+                    nodes.add(triple[0])
+                    nodes.add(triple[2])
+                    if edge['label'] == ' ':
+                        edge['label'] = ''
+                    filtered_edges.append(edge)
 
-            edge = [e for e in original_edges if e['from'] == edge['from'] and edge_label == edge['label']
-                    and e['to'] == edge['to']][0]
-            filtered_graph.get('edges').append(edge)
-        filtered_nodes = [node for node in original_nodes if node['id'] in nodes]
+        filtered_nodes = [node for node in graph_nodes if node['id'] in nodes]
         filtered_graph.get('nodes').extend(filtered_nodes)
-        self.latest_triple = None
+        filtered_graph.get('edges').extend(filtered_edges)
+
         return filtered_graph
 
     def get_restriction(self, subject, filtered_graph):
@@ -199,59 +176,17 @@ class QueryBuilder:
             filtered_graph.append(edge)
             self.get_restriction(o, filtered_graph)
 
-    def restriction_to_owl_expression(self):
-        triples = [['http://www.ease-crc.org/ont/SOMA.owl#Dicing', 'subClassOf', 'Res-60539982743#AND-50310'],
-                   ['Res-60539982743#AND-50310', 'hasInputObject some',
-                    'Res-950690259655#http://www.ease-crc.org/ont/food_cutting#Stripe'],
-                   [
-                       'Res-60539982743#AND-50310', 'hasResultObject exactly 1',
-                       'Res-319911140559#http://www.ease-crc.org/ont/food_cutting#Cube'],
-                   [
-                       'Res-60539982743#AND-50310', 'hasResultObject exactly 1',
-                       'Res-150494678859#http://www.ease-crc.org/ont/food_cutting#Stripe#']]
-
-        graph_viz = self.kg_instance.get_graph_to_visualize()
-        nodes = graph_viz.get("nodes")
-        owl_expression = ""
-        for s, p, o in triples:
-            if not s.startswith("Res"):
-                subject = s
-                node = [node for node in nodes if node['id'] == s]
-                if len(node) == 1:
-                    subject = node[0].get('label')
-
-                owl_expression += f'{subject} {p} '
-            else:
-                obj = o
-                node = [node for node in nodes if node['id'] == o]
-                if len(node) == 1:
-                    obj = node[0].get('label')
-                owl_expression += f'({p} {obj}) AND '
-        print(owl_expression)
-
-    def get_hierarchy(self, filtered_graph):
-        graph_viz = self.kg_instance.get_graph_to_visualize()
-        triples_without_res = [(s, p, o) for s, p, o in self.triples if
-                               not s.startswith('Res') or not o.startswith('Res')]
-        for s, p, o in triples_without_res:
-            for edge in graph_viz.get('edges'):
-                if edge['from'] in s and edge['label'] in p and edge['to'] in o:
-                    filtered_graph.append(edge)
-
-    def get_latest_triple(self):
-        return self.latest_triple
+    def get_latest_triples(self):
+        name = list(self.name2triples.keys())[-1]
+        latest_triple = self.name2triples.get(name)
+        return latest_triple
 
 
 def get_query_builder(kg_instance):
     return QueryBuilder(kg_instance)
 
 
-qb = get_query_builder(kg_instance=graph.KnowledgeGraph('data/food_cutting.owl'))
-# qb.restriction_to_owl_expression()
-# qb.set_triple(['http://www.ease-crc.org/ont/SOMA.owl#Dicing', 'subClassOf',
-#               'http://www.ease-crc.org/ont/food_cutting#CuttingAction'])
-# qb.mock_suggestion2()
-# qb.set_triple(triple=['http://purl.obolibrary.org/obo/PO_0030102', 'subClassOf',
-#                       ' http://purl.obolibrary.org/obo/FOODON_00001057'])
-# qb.get_partial_viz_graph(triple=['http://purl.obolibrary.org/obo/FOODON_00003523', 'subClassOf',
-#                                  'http://purl.obolibrary.org/obo/PO_0030102'])
+qb = get_query_builder(kg_instance=graph.KnowledgeGraph('data/mixing.owl'))
+#qb.mock_suggestion2()
+#print(qb.get_partial_viz_graph())
+
