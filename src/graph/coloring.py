@@ -13,6 +13,8 @@ def color_classes(graph: dict):
         motion.update({'color': {"background": "#FF9B85", "border": "black"}})
     nodes = [n for n in graph.get("nodes") if 'Motion' not in n.get("id") and 'Task' not in n.get("id")]
     for node in nodes:
+        if node['label'] == "Thing":
+            continue
         node.update({"color": "#60D394", "border": "black"})
 
 

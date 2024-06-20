@@ -18,6 +18,7 @@ class KnowledgeGraph:
         self.dominant_namespace = ''
 
         self._set_dominant_namespace()
+        self._add_thing_node()
         self._add_class_hierarchy()
         self._add_class_restrictions()
         self._color_graph()
@@ -33,9 +34,12 @@ class KnowledgeGraph:
             {'from': source_id, 'to': target_id, 'label': edge_label,
              'arrows': 'to'})
 
+    def _add_thing_node(self):
+        self.graph_to_visualize.get("nodes").append({'id': 'http://www.w3.org/2002/07/owl#Thing', 'label': 'Thing',
+                                                     "color": {"background": "#ffba08", "border": "black"}})
+
     def _add_class_hierarchy(self):
         nodes = set()
-        nodes.add(URIRef('http://www.w3.org/2002/07/owl#Thing'))
         for subclass, superclass in self.kg.subject_objects(RDFS.subClassOf):
             if isinstance(superclass, BNode):
                 continue
