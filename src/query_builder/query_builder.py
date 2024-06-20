@@ -69,10 +69,9 @@ class QueryBuilder:
                         filtered_hierarchy.append(triple2)
                     if triple[0] != triple2[0] and triple[0] == triple2[2]:
                         filtered_hierarchy.append(triple2)
-            for triple in hierarchy_triples:
-                if triple in filtered_hierarchy:
-                    filtered_hierarchy.remove(triple)
 
+            filtered_hierarchy = [triple for triple in filtered_hierarchy if triple not in hierarchy_triples]
+            filtered_hierarchy = list(set(tuple(triple) for triple in filtered_hierarchy))
             return filtered_hierarchy
 
     def suggest_restrictions(self):
@@ -101,10 +100,10 @@ class QueryBuilder:
         triple2 = [edge for edge in edges if edge['from'] == whirlstorm_diving and edge['label'] == "equivalentClass"][0]
         as_list = [triple['from'], triple['label'], triple['to']]
         as_list2 = [triple2['from'], triple2['label'], triple2['to']]
-        self.set_triple(as_list)
-        self.set_triple(as_list2)
-        self.set_triple(['http://www.ease-crc.org/ont/mixing#CompoundMotion', 'subClassOf', 'http://www.ease-crc.org/ont/mixing#Motion'])
-        self.set_triple(['http://www.ease-crc.org/ont/mixing#MixingMotion', 'subClassOf', 'http://www.ease-crc.org/ont/mixing#Motion'])
+        #self.set_triple(as_list)
+        #self.set_triple(as_list2)
+        #self.set_triple(['http://www.ease-crc.org/ont/mixing#CompoundMotion', 'subClassOf', 'http://www.ease-crc.org/ont/mixing#Motion'])
+        #self.set_triple(['http://www.ease-crc.org/ont/mixing#MixingMotion', 'subClassOf', 'http://www.ease-crc.org/ont/mixing#Motion'])
 
         if len(self.name2triples) == 0:
             for edge in edges:
