@@ -46,7 +46,7 @@ def suggest_triples():
 def clear_triples():
     response = request.json
     print(response['clearTriples'])
-    qb.clear_triples(response['clearTriples'])
+    qb.clear_triples()
     return jsonify({'message': 'Cleared triples'}), 200
 
 
