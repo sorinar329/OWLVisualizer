@@ -35,6 +35,7 @@ class KnowledgeGraph:
 
     def _add_class_hierarchy(self):
         nodes = set()
+        nodes.add(URIRef('http://www.w3.org/2002/07/owl#Thing'))
         for subclass, superclass in self.kg.subject_objects(RDFS.subClassOf):
             if isinstance(superclass, BNode):
                 continue
