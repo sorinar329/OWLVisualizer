@@ -14,137 +14,54 @@
 </head>
 <body>
 <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
-            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav mr-auto">
-            <li class="nav-item active">
-                <
-                <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
-                    <input type="file" name="file" id="fileInput">
-                    <button type="submit" id="uploadBtn">Upload</button>
-                </form>
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">OWLVisualizer</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
-            </li>
-        </ul>
-
-        <!-- INFERENCE QUERY -->
-        <div class="modal fade" id="customModal" tabindex="-1" role="dialog" aria-labelledby="customModalLabel"
-             aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="customModalLabel">Inference Query</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
+        <div class="collapse navbar-collapse justify-content-between" id="navbarSupportedContent">
+            <div class="d-flex flex-grow-0"> <!-- Hier werden die Buttons links ausgerichtet -->
+                <div class="btn-group mr-2" role="group" aria-label="Basic example">
+                    <div class="upload-btn-wrapper">
+                        <button class="btn btn-primary" type="button"
+                                onclick="document.getElementsByName('file')[0].click();">
+                            Load Ontology
                         </button>
+                        <input type="file" name="file" style="display: none;"
+                               onchange="handleFileChange(this)">
                     </div>
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <label for="taskSelect">Tasks</label>
-                            <select class="form-control" id="taskSelect">
-
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="ingredientSelect">Ingredients</label>
-                            <select class="form-control" id="ingredientSelect">
-
-                            </select>
-                            <button type="button" class="btn btn-sm btn-secondary mt-2" id="addIngredientField">+
-                            </button>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary">Save changes</button>
-                    </div>
+                    <button type="button" class="btn btn-primary" data-toggle="modal"
+                            data-target="#exampleModalCenter">QueryBuilder
+                    </button>
+                    <button type="button" class="btn btn-primary"
+                            data-toggle="modal" data-target="#customModal">
+                        Custom Reasoner
+                    </button>
                 </div>
             </div>
         </div>
-        <!-- New Modal for Graph and Table -->
-        <div class="modal fade" id="graphTableModal" tabindex="-1" role="dialog" aria-labelledby="graphTableModalLabel"
-             aria-hidden="true">
-            <div class="modal-dialog modal-xl" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="graphTableModalLabel">Graph and Table</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <div id="graphContainer"></div>
-                        <table class="table mt-3">
-                            <thead>
-                            <tr>
-                                <th scope="col" style="width: 10%;">Step</th> <!-- Adjust width as needed -->
-                                <th scope="col" style="width: 55%;">Action
-                                <th scope="col" style="width: 35%;">Inference</th>
-                            </tr>
-                            </thead>
-                            <tbody id="tableBody">
-                            <!-- Table rows will be dynamically added here -->
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    </div>
+        <form class="form-inline flex-grow-1 justify-content-center">
+            <!-- Hier wird die Suchleiste in der Mitte positioniert -->
+            <div class="input-group">
+                <input id="searchBar" type="text" class="form-control" list="datalistOptions" size="40"
+                       placeholder="Search for class or instance">
+                <datalist id="datalistOptions">
+                </datalist>
+                <div class="input-group-append">
+                    <button class="btn btn-light" id="searchButton" type="button"><i
+                            class="bi bi-search"></i>
+                    </button>
                 </div>
             </div>
+        </form>
+        <div class="d-flex flex-grow-0">
+            <button type="submit" class="btn btn-outline-light">
+                <i class="bi bi-justify"></i>
+            </button>
         </div>
-
-        <div class="container ">
-            <div class="container-fluid">
-                <a class="navbar-brand" href="#">OWLVisualizer</a>
-                <button class="navbar-toggler" type="button" data-toggle="collapse"
-                        data-target="#navbarSupportedContent"
-                        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse justify-content-between" id="navbarSupportedContent">
-                    <div class="d-flex flex-grow-0"> <!-- Hier werden die Buttons links ausgerichtet -->
-                        <div class="btn-group mr-2" role="group" aria-label="Basic example">
-                            <div class="d-flex flex-grow-0"> <!-- Hier werden die Buttons links ausgerichtet -->
-                                <div class="btn-group mr-2" role="group" aria-label="Basic example">
-                                    <button class="btn btn-primary" type="button">Load Ontology</button>
-                                    <button type="button" class="btn btn-primary" data-toggle="modal"
-                                            data-target="#exampleModalCenter">QueryBuilder
-                                    </button>
-                                    <button type="button" class="btn btn-primary"
-                                            data-toggle="modal" data-target="#customModal">
-                                        Custom Reasoner
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <form class="form-inline flex-grow-1 justify-content-center">
-                            <!-- Hier wird die Suchleiste in der Mitte positioniert -->
-                            <div class="input-group">
-                                <input id="searchBar" type="text" class="form-control" list="datalistOptions" size="40"
-                                       placeholder="Search for class or instance">
-                                <datalist id="datalistOptions">
-                                </datalist>
-                                <div class="input-group-append">
-                                    <button class="btn btn-light" id="searchButton" type="button"><i
-                                            class="bi bi-search"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
-                        <div class="d-flex flex-grow-0">
-                            <button type="submit" class="btn btn-outline-light">
-                                <i class="bi bi-justify"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    </div>
     </div>
 </nav>
 <!-- Modal -->
@@ -206,6 +123,74 @@
     </div>
 </div>
 
+<!-- INFERENCE QUERY -->
+<div class="modal fade" id="customModal" tabindex="-1" role="dialog" aria-labelledby="customModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="customModalLabel">Inference Query</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="taskSelect">Tasks</label>
+                    <select class="form-control" id="taskSelect">
+
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="ingredientSelect">Ingredients</label>
+                    <select class="form-control" id="ingredientSelect">
+
+                    </select>
+                    <button type="button" class="btn btn-sm btn-secondary mt-2" id="addIngredientField">+
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- New Modal for Graph and Table -->
+<div class="modal fade" id="graphTableModal" tabindex="-1" role="dialog" aria-labelledby="graphTableModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="graphTableModalLabel">Graph and Table</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="graphContainer"></div>
+                <table class="table mt-3">
+                    <thead>
+                    <tr>
+                        <th scope="col" style="width: 10%;">Step</th> <!-- Adjust width as needed -->
+                        <th scope="col" style="width: 55%;">Action
+                        <th scope="col" style="width: 35%;">Inference</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                    <!-- Table rows will be dynamically added here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <div id="vis-network" class="vis-network"></div>
 
@@ -232,167 +217,6 @@
             });
         }
     });
-
-    // Call this function whenever you want to wipe the graph
-
-    document.addEventListener('DOMContentLoaded', function () {
-        // Function to handle form submission
-        document.getElementById('uploadForm').addEventListener('submit', function (event) {
-            event.preventDefault(); // Prevent default form submission
-            const formData = new FormData(this); // Create FormData object
-            fetch('/upload', { // Send POST request to server
-                method: 'POST',
-                body: formData
-            })
-                .then(response => response.json()) // Parse response as JSON
-                .then(data => {
-                    console.log(data);
-                    if (!data.error) {
-                        vizGraph();
-                    }
-                })
-                .catch(error => console.error('Error:', error)); // Log any errors
-        });
-    });
-
-
-    document.addEventListener('DOMContentLoaded', function () {
-        // Verify that the graphContainer exists
-        const container = document.getElementById('graphContainer');
-        if (!container) {
-            console.error("Graph container not found!");
-            return;
-        }
-
-        // Initialize the graph
-        const data = {
-            nodes: [],
-            edges: []
-        };
-        const options = {
-            edges: {
-                color: {
-                    inherit: false
-                }
-            }
-        }; // Customize graph options if needed
-        const network = new vis.Network(container, data, options);
-
-
-        function updateGraphAndTable(graphData, tableData) {
-            // Update graph
-            const container = document.getElementById('graphContainer');
-            if (!container) {
-                console.error("Graph container not found!");
-                return;
-            }
-
-            const data = {
-                nodes: graphData.nodes,
-                edges: graphData.edges
-            };
-            const options = {
-                edges: {
-                    color: {
-                        inherit: false
-                    }
-                }
-            }; // Customize graph options if needed
-            const network = new vis.Network(container, data, options);
-
-            // Update table
-            const tableBody = document.getElementById('tableBody');
-            tableBody.innerHTML = ''; // Clear previous content
-            tableData.forEach(rowData => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-            <td>${rowData.col1}</td>
-            <td>${rowData.col2}</td>
-            <td>${rowData.col3}</td>
-        `;
-                tableBody.appendChild(row);
-            });
-
-            // Show the modal after a short delay to ensure the graph is rendered properly
-            setTimeout(function () {
-                $('#graphTableModal').modal('show');
-            }, 100);
-        }
-
-        jQuery(document).ready(function ($) {
-            // Function to fetch and populate tasks
-            $.ajax({
-                url: '/task_ingredients',
-                type: 'GET',
-                success: function (data) {
-                    var taskSelect = $('#taskSelect');
-                    $.each(data.tasks, function (index, task) {
-                        taskSelect.append($('<option>', {
-                            value: task,
-                            text: task.split("#")[1]
-                        }));
-                    });
-                    var ingredientSelect = $('#ingredientSelect');
-                    $.each(data.ingredients, function (index, ingredient) {
-                        ingredientSelect.append($("<option>", {
-                            value: ingredient,
-                            text: ingredient.split("#")[1]
-
-                        }));
-                    });
-                }
-            });
-        });
-
-
-        document.getElementById('addIngredientField').addEventListener('click', function () {
-            var originalSelect = document.getElementById('ingredientSelect');
-            var newSelect = originalSelect.cloneNode(true);
-            newSelect.id = 'ingredientSelect' + Math.floor(Math.random() * 1000); // Generate unique ID for the new select
-            originalSelect.parentNode.appendChild(newSelect);
-        });
-        $(document).on('click', '#customModal .modal-footer .btn-primary', function () {
-            var task = $("#taskSelect").val();
-            console.log("Task:", task);
-
-            // Retrieve selected values from all ingredient select fields
-            var ingredients = [];
-            $('.modal-body .form-group select').each(function () {
-                var ingredient = $(this).val();
-                if (ingredient && ingredient !== task) {
-                    ingredients.push(ingredient);
-                }
-            });
-
-            // Log the ingredients array to check if task is included
-            console.log("Ingredients:", ingredients);
-
-            // Create a data object to send to the backend
-            var data = {
-                task: task,
-                ingredients: ingredients
-            };
-
-            // Send an AJAX POST request to your Flask backend
-            $.ajax({
-                type: "POST",
-                url: "/data",
-                data: JSON.stringify(data),
-                contentType: "application/json",
-                success: function (response) {
-                    // Handle the response from the server
-                    const graphData = response.graphData;
-                    const tableData = response.tableData;
-                    updateGraphAndTable(graphData, tableData);
-                },
-                error: function (err) {
-                    // Handle errors if any
-                    console.error('There was a problem fetching data:', err);
-                }
-            });
-        });
-    });
-
 </script>
 
 <script>

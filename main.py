@@ -3,10 +3,10 @@ from urllib.parse import unquote
 
 from flask import Flask, render_template, jsonify, request
 
-import graph.graph
-from query_builder import query_builder, sparql_generator
+from src.query_builder import query_builder, sparql_generator
 from src import inference_builder
 from src.graph import graph
+from src.query_builder.query_builder import QueryBuilder
 
 app = Flask(__name__)
 kg_instance = None
@@ -44,7 +44,7 @@ def get_graph_data_rdf():
 
 @app.route('/query_builder', methods=["GET", "POST"])
 def suggest_triples():
-    if qb is not None:
+    if qb is not None and isinstance(qb, QueryBuilder):
         if request.method == 'POST':
             print("Received data")
             response = request.json['selectedValues']
@@ -70,6 +70,8 @@ def get_tasks_and_ingredients():
 
 @app.route('/upload', methods=['POST'])
 def upload_file_graph():
+    print("Here")
+    print(request.files['file'])
     # Delete existing files in the folder
     folder_path = data_path
     for filename in os.listdir(folder_path):

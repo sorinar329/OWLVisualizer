@@ -42,3 +42,34 @@ function viewNode(network, nodes) {
     network.setSelection({nodes: [nodeId]});
     network.focus(nodeId, options);
 }
+function handleFileChange(input) {
+    uploadGraph(input.files[0]);
+}
+
+function uploadGraph(file) {
+    if (!file) {
+        console.error('No file selected');
+        return;
+    }
+
+    console.log('Selected file:', file);
+
+    // Create a FormData object to send the file as multipart/form-data
+    let formData = new FormData();
+    formData.append('file', file);
+
+    fetch('/upload', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Upload response:', data);
+        if (!data.error) {
+            vizGraph(); // Assuming vizGraph() is a function to visualize the graph
+        } else {
+            console.error('Error:', data.error);
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
