@@ -20,6 +20,11 @@ triples = [['http://www.ease-crc.org/ont/SOMA.owl#Dicing', 'subClassOf', 'Res-60
                'Res-319911140559#http://www.ease-crc.org/ont/food_cutting#Cube'],
            ]
 
+triples2 = [['http://www.ease-crc.org/ont/SOMA.owl#Dicing', 'subClassOf',
+             'http://www.ease-crc.org/ont/food_cutting#CuttingAction'],
+            ['http://www.ease-crc.org/ont/food_cutting#CuttingAction', 'subClassOf',
+             'http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#Task']]
+
 
 class SparqlGenerator:
     def __init__(self, knowledge_graph: rdflib.Graph):
@@ -32,34 +37,42 @@ class SparqlGenerator:
 
     def generate_sparql_query(self, triples):
         class_triples = []
+        matched_triples = []
 
         cls = triples[0][0]
+        obj = triples[0][2]
 
-        for triple in self.knowledge_graph.triples((URIRef(cls), None, None)):
-            restrictions = []
-            recursive_pattern_matching(self.knowledge_graph, triple[2], restrictions)
-            class_triples.append(restrictions)
-        class_restrictions = [triples2 for triples2 in class_triples if len(triples2) > 0]
+        if obj.startswith('Res'):
+            for triple in self.knowledge_graph.triples((URIRef(cls), None, None)):
+                restrictions = []
+                recursive_pattern_matching(self.knowledge_graph, triple[2], restrictions)
+                class_triples.append(restrictions)
+            class_restrictions = [triples2 for triples2 in class_triples if len(triples2) > 0]
 
-        objs = []
-        for s, p, o in triples:
-            if o.startswith('Res'):
-                objs.append(o.split('#', 1)[1])
-            else:
-                objs.append(o)
-        idx, matching_obj = 0, 0
-        for i in range(len(class_restrictions)):
-            objs2 = []
-            for _, _, o in class_restrictions[i]:
-                objs2.append(str(o))
-            if len(set(objs).intersection(set(objs2))) > matching_obj:
-                matching_obj = len(set(objs).intersection(set(objs2)))
-                idx = i
+            objs = []
+            for s, p, o in triples:
+                if o.startswith('Res'):
+                    objs.append(o.split('#', 1)[1])
+                else:
+                    objs.append(o)
+            idx, matching_obj = 0, 0
+            for i in range(len(class_restrictions)):
+                objs2 = []
+                for _, _, o in class_restrictions[i]:
+                    objs2.append(str(o))
+                if len(set(objs).intersection(set(objs2))) > matching_obj:
+                    matching_obj = len(set(objs).intersection(set(objs2)))
+                    idx = i
 
-        matched_triples = class_restrictions[idx]
-        matched_triples = [triple for triple in matched_triples if triple[1] != RDF.type]
-        for s, p, o in self.knowledge_graph.triples((None, None, matched_triples[0][0])):
-            matched_triples.insert(0, [s, p, o])
+            matched_triples = class_restrictions[idx]
+            matched_triples = [triple for triple in matched_triples if triple[1] != RDF.type]
+            for s, p, o in self.knowledge_graph.triples((None, None, matched_triples[0][0])):
+                matched_triples.insert(0, [s, p, o])
+
+        else:
+            for s, p, o in triples:
+                for triple in self.knowledge_graph.triples((URIRef(s), None, URIRef(o))):
+                    matched_triples.append(triple)
 
         for triple in matched_triples:
             self.add_triple(triple)
@@ -106,17 +119,26 @@ class SparqlGenerator:
         if '#' in el:
             cls_name = el[el.rindex('#') + 1:]
         else:
-            cls_name = el[el.rindex('#') + 1:]
+            cls_name = el[el.rindex('/') + 1:]
         return cls_name
 
     def _add_prefix(self, el):
         base_iri = self._get_base_iri(str(el))
         prefix = PREFIX_MAP.get(base_iri)
+
+        if prefix is None:
+            prefix = base_iri[:-1]
+            prefix = prefix[prefix.rindex('/') + 1:]
+            prefix = prefix.split('.owl')[0]
+            if '_' in prefix:
+                prefix = prefix.split('_')[-1]
+            PREFIX_MAP.update({base_iri: prefix})
+            print(base_iri, prefix)
+
         self.sparql_prefixes.add(f'{prefix}: <{base_iri}>')
         return prefix
-    # TODO: Add prefixes not defined in PREFIX_MAP
 
-
-#knowledge_graph = rdflib.Graph().parse("../data/food_cutting.owl")
-#gen = SparqlGenerator(knowledge_graph)
-#gen.generate_sparql_query(triples)
+# knowledge_graph = rdflib.Graph().parse("../data/food_cutting.owl")
+# gen = SparqlGenerator(knowledge_graph)
+# query = gen.generate_sparql_query(triples2)
+# print(query)
