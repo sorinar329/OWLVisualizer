@@ -179,7 +179,7 @@ def get_query_builder(kg_instance):
     return QueryBuilder(kg_instance)
 
 
-qb = get_query_builder(kg_instance=graph.KnowledgeGraph('data/mixing.owl'))
+#qb = get_query_builder(kg_instance=graph.KnowledgeGraph('data/mixing.owl'))
 #qb.mock_suggestion2()
 #print(qb.get_partial_viz_graph())
 
