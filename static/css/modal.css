@@ -1,0 +1,11 @@
+.sparql-textarea {
+    font-size: 11px; /* Schriftgröße */
+    background-color: #f9f9f9; /* Hintergrundfarbe */
+    border: 1px solid #ccc; /* Rand */
+    resize: none;
+    padding: 10px; /* Innenabstand */
+    box-sizing: border-box;
+    font-family: monospace; /* Monospace-Schriftart für besseren Code-Look */
+    overflow: auto;
+    white-space: pre-wrap; /* Zeilenumbruch */
+}
