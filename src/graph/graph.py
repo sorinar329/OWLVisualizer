@@ -49,6 +49,9 @@ class KnowledgeGraph:
             self._add_edge(source_id=str(subclass), target_id=str(superclass), edge_label='subClassOf')
         for node in nodes:
             self._add_node(node_id=str(node))
+        nodes = self.graph_to_visualize.get("nodes")
+        nodes = sorted(nodes, key=lambda x: x['label'].lower())
+        self.graph_to_visualize.update({"nodes": nodes})
 
     def _add_class_restrictions(self):
         classes_with_restrictions = [[s, p, o] for (s, p, o)
@@ -159,3 +162,5 @@ class KnowledgeGraph:
                 count[iri] = 1
 
         self.dominant_namespace = max(count, key=lambda key: count[key])
+
+#graph = KnowledgeGraph("data/food_cutting.owl")
