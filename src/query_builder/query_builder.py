@@ -95,15 +95,6 @@ class QueryBuilder:
     def mock_suggestion2(self):
         edges = self.kg_instance.get_graph_to_visualize().get("edges")
         suggest_triples = []
-        whirlstorm_diving = "http://www.ease-crc.org/ont/mixing#WhirlstormThenCircularDivingToInner"
-        triple = [edge for edge in edges if edge['from'] == whirlstorm_diving and edge['label'] == "subClassOf"][0]
-        triple2 = [edge for edge in edges if edge['from'] == whirlstorm_diving and edge['label'] == "equivalentClass"][0]
-        as_list = [triple['from'], triple['label'], triple['to']]
-        as_list2 = [triple2['from'], triple2['label'], triple2['to']]
-        #self.set_triple(as_list)
-        #self.set_triple(as_list2)
-        #self.set_triple(['http://www.ease-crc.org/ont/mixing#CompoundMotion', 'subClassOf', 'http://www.ease-crc.org/ont/mixing#Motion'])
-        #self.set_triple(['http://www.ease-crc.org/ont/mixing#MixingMotion', 'subClassOf', 'http://www.ease-crc.org/ont/mixing#Motion'])
 
         if len(self.name2triples) == 0:
             for edge in edges:
@@ -114,7 +105,6 @@ class QueryBuilder:
         else:
             suggest_triples.extend(self.suggest_restrictions())
             suggest_triples.extend(self.suggest_hierarchy())
-            print(list(self.name2triples.keys()))
 
         mocked_solution = {'subjects': []}
         for triple in suggest_triples:
@@ -138,9 +128,13 @@ class QueryBuilder:
                 p = predicate
             else:
                 p = p[0]
+            type_o = 'Classes'
+            if str(triple[2]).startswith('Res'):
+                type_o = 'Restrictions'
             obj = {'iri': str(triple[2]), 'label': graph_utility.uri_or_literal_2label(self.kg, triple[2]),
-                   'type': 'Classes'}
+                   'type': type_o}
             p['objects'].append(obj)
+        #mocked_solution = sorted(mocked_solution['subjects'], key=lambda x: x['label'].lower())
         return mocked_solution
 
     def get_partial_viz_graph(self):
