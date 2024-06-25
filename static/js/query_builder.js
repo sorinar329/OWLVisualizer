@@ -374,7 +374,6 @@ function createSPARQLTabContent(groupName) {
             textArea.textContent = data
             const tab = document.getElementById(groupName + "-tab");
             tab.appendChild(textArea);
-            console.log(data);
         }).catch(error => console.error('Error fetching data:', error));
 }
 

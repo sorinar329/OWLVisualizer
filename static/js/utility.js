@@ -42,6 +42,7 @@ function viewNode(network, nodes) {
     network.setSelection({nodes: [nodeId]});
     network.focus(nodeId, options);
 }
+
 function handleFileChange(input) {
     uploadGraph(input.files[0]);
 }
@@ -62,14 +63,44 @@ function uploadGraph(file) {
         method: 'POST',
         body: formData
     })
-    .then(response => response.json())
-    .then(data => {
-        console.log('Upload response:', data);
-        if (!data.error) {
-            vizGraph(); // Assuming vizGraph() is a function to visualize the graph
-        } else {
-            console.error('Error:', data.error);
-        }
-    })
-    .catch(error => console.error('Error:', error));
+        .then(response => response.json())
+        .then(data => {
+            console.log('Upload response:', data);
+            if (!data.error) {
+                vizGraph(); // Assuming vizGraph() is a function to visualize the graph
+            } else {
+                createAlert(data.error, "danger");
+            }
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+function createAlert(msg, msgType) {
+    const alert = document.createElement("div");
+    alert.className = 'alert alert-dismissible fade show';
+    if (msgType === "danger") {
+        alert.classList.add("alert-danger");
+    } else if (msgType === "warning") {
+        alert.classList.add("alert-warning");
+    } else {
+        alert.classList.add("alert-dark");
+    }
+
+    alert.setAttribute("role", "alert");
+    alert.textContent = msg;
+
+    const closeButton = document.createElement("button");
+    closeButton.className = "close";
+    closeButton.setAttribute("data-dismiss", "alert");
+    closeButton.setAttribute("aria-label", "Close");
+
+    const span = document.createElement("span");
+    span.setAttribute("aria-hidden", "true");
+    span.innerHTML = '&times;';
+
+    closeButton.appendChild(span);
+
+    alert.appendChild(closeButton);
+
+    document.body.insertBefore(alert, document.body.children.item(1));
 }

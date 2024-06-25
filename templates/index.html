@@ -13,6 +13,7 @@
 
 </head>
 <body>
+
 <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="#">OWLVisualizer</a>
@@ -22,15 +23,14 @@
         </button>
 
         <div class="collapse navbar-collapse justify-content-between" id="navbarSupportedContent">
-            <div class="d-flex flex-grow-0"> <!-- Hier werden die Buttons links ausgerichtet -->
-                <div class="btn-group mr-2" role="group" aria-label="Basic example">
+            <div class="d-flex flex-grow-1"> <!-- Hier werden die Buttons links ausgerichtet -->
+                <div class="btn-group" role="group" aria-label="Basic example">
                     <div class="upload-btn-wrapper">
                         <button class="btn btn-primary" type="button"
                                 onclick="document.getElementsByName('file')[0].click();">
                             Load Ontology
                         </button>
-                        <input type="file" name="file" style="display: none;"
-                               onchange="handleFileChange(this)">
+                        <input type="file" name="file" onchange="handleFileChange(this)">
                     </div>
                     <button type="button" class="btn btn-primary" data-toggle="modal"
                             data-target="#exampleModalCenter">QueryBuilder
@@ -41,27 +41,33 @@
                     </button>
                 </div>
             </div>
-        </div>
-        <form class="form-inline flex-grow-1 justify-content-center">
-            <!-- Hier wird die Suchleiste in der Mitte positioniert -->
-            <div class="input-group">
-                <input id="searchBar" type="text" class="form-control" list="datalistOptions" size="40"
-                       placeholder="Search for class or instance">
-                <datalist id="datalistOptions">
-                </datalist>
-                <div class="input-group-append">
-                    <button class="btn btn-light" id="searchButton" type="button"><i
-                            class="bi bi-search"></i>
-                    </button>
+            <form class="form-inline flex-grow-1 justify-content-end">
+                <div class="input-group">
+                    <input id="searchBar" type="text" class="form-control" list="datalistOptions" size="25"
+                           placeholder="Search for class or instance">
+                    <datalist id="datalistOptions">
+                    </datalist>
+                    <div class="input-group-append">
+                        <button class="btn btn-light" id="searchButton" type="button"><i
+                                class="bi bi-search"></i>
+                        </button>
+                    </div>
+                    <div class="dropdown">
+                        <button type="button" class="btn btn-outline-light dropdown-toggle" id="menuButton"
+                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="bi bi-justify"></i>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="menuButton">
+                            <a class="dropdown-item"
+                               href="https://github.com/Food-Ninja/MixingIngredients/blob/main/src/mixing.owl"
+                               target="_blank">
+                                Mixing Ontology
+                            </a>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </form>
-        <div class="d-flex flex-grow-0">
-            <button type="submit" class="btn btn-outline-light">
-                <i class="bi bi-justify"></i>
-            </button>
+            </form>
         </div>
-    </div>
     </div>
 </nav>
 <!-- Modal -->
@@ -194,9 +200,7 @@
 
 <div id="vis-network" class="vis-network"></div>
 
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
-        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
-        crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
         crossorigin="anonymous"></script>
@@ -212,10 +216,11 @@
         const autocompleteInput = document.getElementById('autocompleteInput');
         if (autocompleteInput) {
             autocompleteInput.addEventListener('input', function () {
-                // Hier kannst du weitere Aktionen für die Eingabe durchführen
                 console.log('Input changed:', autocompleteInput.value);
             });
         }
+
+        customInference();
     });
 </script>
 
