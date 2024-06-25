@@ -129,7 +129,15 @@ function populate_suggestions_triple(selectElement, idx) {
 }
 
 function groupOptions(currentSelect, idx) {
-    if (idx === 1 || idx === 3) {
+    if (idx === 1) {
+        const classOptions = ["Classes"];
+        classOptions.forEach(option => {
+                const optgroup = document.createElement("optgroup");
+                optgroup.label = option;
+                currentSelect.appendChild(optgroup);
+            }
+        )
+    } else if (idx === 3) {
         const classOptions = ["Classes", "Restrictions"];
         classOptions.forEach(option => {
                 const optgroup = document.createElement("optgroup");
@@ -138,7 +146,7 @@ function groupOptions(currentSelect, idx) {
             }
         )
     } else {
-        const classOptions = ["Is a", "Attributes", "Relations", "Other"];
+        const classOptions = ["Relations"];
         classOptions.forEach(option => {
                 const optgroup = document.createElement("optgroup");
                 optgroup.label = option;
@@ -159,6 +167,10 @@ function sendSelectedValues() {
         'secondSelect': encodeURIComponent(select2.value),
         'thirdSelect': encodeURIComponent(select3.value)
     };
+
+    const card = document.getElementById("query-builder-result");
+    card.style.display = "block";
+
     fetchedData = null;
     [sub, pred, obj] = ["", "", ""]
     fetch('/query_builder', {
@@ -179,6 +191,8 @@ function clearSelectedOptions() {
     const tabContent = document.getElementById("query-builder-tab-content");
     navTab.innerHTML = '';
     tabContent.innerHTML = '';
+    const card = document.getElementById("query-builder-result");
+    card.style.display = "none";
 
     let selectRow = document.getElementById("query-builder-select-row");
     for (let i = 0; i < 3; i++) {
@@ -189,6 +203,7 @@ function clearSelectedOptions() {
         selectField.innerHTML = '';
     }
     fetchedData = null;
+    restrictionIdx = 1;
     [sub, pred, obj] = ["", "", ""];
 
     fetch('/query_builder_clear', {
@@ -352,6 +367,8 @@ function createSPARQLTabContent(groupName) {
             textArea.id = groupName + "-sparql-textarea";
             textArea.className = "form-control";
             textArea.setAttribute("rows", "10");
+            textArea.setAttribute("cols", "120");
+            textArea.classList.add("sparql-textarea");
             textArea.setAttribute("aria-labelledby", groupName + "-sparql");
             textArea.style.display = "None";
             textArea.textContent = data
