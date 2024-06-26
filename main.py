@@ -11,7 +11,10 @@ app = Flask(__name__)
 kg_instance = None
 qb = None
 
-
+cached_data = None
+cached_status = False
+data_path = "data"
+file = None
 @app.route('/')
 def index():
     return render_template("homepage.html")
@@ -21,19 +24,15 @@ def index():
 def owlviz():
     return render_template("index.html")
 
-
-cached_data = None
-cached_status = False
-data_path = "data"
-
-
 @app.route('/get_graph_data_rdf')
 def get_graph_data_rdf():
     global kg_instance, qb
 
     file_paths = [os.path.join(data_path, file) for file in
                   os.listdir(data_path)]
-    kg_instance = KnowledgeGraph(file_paths[0])
+    global file
+    file = file_paths[0]
+    kg_instance = KnowledgeGraph(file)
     graph_visualize = kg_instance.get_graph_to_visualize()
     qb = query_builder.get_query_builder(kg_instance)
     print(f"Num nodes: {len(graph_visualize.get('nodes'))}")
@@ -108,7 +107,7 @@ def get_data():
     data = request.json
     task = data.get('task')
     ingredients = data.get('ingredients')
-    task_tree, graph_data = inference_builder.generate_task_tree_and_graphdata(task, ingredients)
+    task_tree, graph_data = inference_builder.generate_task_tree_and_graphdata(task, ingredients, file)
     return jsonify({"graphData": graph_data, "tableData": task_tree})
 
 

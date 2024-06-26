@@ -100,9 +100,9 @@ def init_graph_to_visualize():
     graph_to_visualize = {'nodes': [], 'edges': []}
     return graph_to_visualize
 
-def generate_task_tree_and_graphdata(task, ingredients):
+def generate_task_tree_and_graphdata(task, ingredients, file):
 
-    motion, parameters, task_instance = get_inference(task, ingredients)
+    motion, parameters, task_instance = get_inference(task, ingredients, file)
 
     graph = init_graph_to_visualize()
     nodes = set()
@@ -160,12 +160,13 @@ def generate_task_tree_and_graphdata(task, ingredients):
 
 
 
-def get_inference(task, ingredients):
-    onto = get_ontology("C:\Dev\OWLVisualizer\static\ontologies\mixing.owl").load()
+def get_inference(task, ingredients, file):
+    onto = get_ontology(file).load()
     task_name = task.split("#")[1]
     task_instance = onto[task_name](f"{task_name}-1")
     ingredients_list = []
     for i in ingredients:
+        print(i)
         ingredient = i.split("#")[1]
         ingredient_instance = onto[ingredient](f"{ingredient}-1")
         ingredients_list.append(ingredient_instance)
