@@ -70,15 +70,15 @@ function customInference() {
                     var taskSelect = $('#taskSelect');
                     $.each(data.tasks, function (index, task) {
                         taskSelect.append($('<option>', {
-                            value: task,
-                            text: task.split("#")[1]
+                            value: task.name,
+                            text: task.label
                         }));
                     });
                     var ingredientSelect = $('#ingredientSelect');
                     $.each(data.ingredients, function (index, ingredient) {
                         ingredientSelect.append($("<option>", {
-                            value: ingredient,
-                            text: ingredient.split("#")[1]
+                            value: ingredient.name,
+                            text: ingredient.label
 
                         }));
                     });

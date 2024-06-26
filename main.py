@@ -14,7 +14,7 @@ qb = None
 cached_data = None
 cached_status = False
 data_path = "data"
-file = None
+
 @app.route('/')
 def index():
     return render_template("homepage.html")
@@ -30,7 +30,6 @@ def get_graph_data_rdf():
 
     file_paths = [os.path.join(data_path, file) for file in
                   os.listdir(data_path)]
-    global file
     file = file_paths[0]
     kg_instance = KnowledgeGraph(file)
     graph_visualize = kg_instance.get_graph_to_visualize()
@@ -64,7 +63,7 @@ def suggest_triples():
 
 @app.route("/task_ingredients")
 def get_tasks_and_ingredients():
-    return jsonify({"tasks": inference_builder.get_tasks(), "ingredients": inference_builder.get_ingredients_leaf()})
+    return jsonify({"tasks": inference_builder.get_tasks(), "ingredients": inference_builder.get_ingredients()})
 
 
 @app.route('/upload', methods=['POST'])
@@ -107,7 +106,7 @@ def get_data():
     data = request.json
     task = data.get('task')
     ingredients = data.get('ingredients')
-    task_tree, graph_data = inference_builder.generate_task_tree_and_graphdata(task, ingredients, file)
+    task_tree, graph_data = inference_builder.generate_task_tree_and_graphdata(task, ingredients)
     return jsonify({"graphData": graph_data, "tableData": task_tree})
 
 
@@ -116,8 +115,6 @@ def clear_triples():
     if isinstance(qb, QueryBuilder):
         qb.clear_triples()
         return jsonify({'message': 'Cleared triples'}), 200
-    else:
-        return jsonify({'error': 'An ontology is not loaded'})
 
 
 @app.route('/query_builder_graph_vis', methods=["GET", "POST"])
