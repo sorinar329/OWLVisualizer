@@ -161,15 +161,6 @@ class KnowledgeGraph:
         for edge in edges:
             edge.update({'color': {'color': 'black'}})
 
-        # coloring.color_classes(self.graph_to_visualize)
-        # coloring.color_parameters(self.graph_to_visualize)
-        # coloring.color_edges(self.graph_to_visualize)
-        # coloring.color_tasks_actions(self.kg, self.graph_to_visualize)
-        # coloring.color_dispositions(self.kg, self.graph_to_visualize)
-        # coloring.color_tools(self.kg, self.graph_to_visualize)
-        # coloring.color_instances(self.graph_to_visualize)
-        # coloring.color_motions(self.kg, self.graph_to_visualize)
-
     def _set_base_iri(self):
         ontologies = list(self.kg.triples((None, RDF.type, OWL.Ontology)))
         if len(ontologies) > 0:
