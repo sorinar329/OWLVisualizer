@@ -1,12 +1,5 @@
-from rdflib import Graph, URIRef, RDF, OWL, BNode, RDFS
-import rdflib.util
 import src.graph.graph as graph
-from src.graph.graph_utility import extract_property_value
-
 from src.graph import graph_utility
-
-motion = "http://www.ease-crc.org/ont/mixing#CircularDivingToInnerMotion"
-motion2 = "http://www.ease-crc.org/ont/mixing#CircularMotion"
 
 
 class QueryBuilder:
@@ -71,8 +64,13 @@ class QueryBuilder:
                         filtered_hierarchy.append(triple2)
 
             filtered_hierarchy = [triple for triple in filtered_hierarchy if triple not in hierarchy_triples]
-            filtered_hierarchy = list(set(tuple(triple) for triple in filtered_hierarchy))
-            return filtered_hierarchy
+            result = []
+            unique_triples = set()
+            for triple in filtered_hierarchy:
+                if tuple(triple) not in unique_triples:
+                    unique_triples.add(tuple(triple))
+                    result.append(triple)
+            return result
 
     def suggest_restrictions(self):
         triples = []
@@ -107,6 +105,13 @@ class QueryBuilder:
             suggest_triples.extend(self.suggest_hierarchy())
 
         mocked_solution = {'subjects': []}
+        suggest_triples = sorted(suggest_triples)
+        sub_labels = []
+        for s, _, _ in suggest_triples:
+            label = graph_utility.uri_or_literal_2label(self.kg, s)
+            sub_labels.append(label.lower())
+
+        suggest_triples = [x for x, _ in sorted(zip(suggest_triples, sub_labels), key=lambda pair: pair[1])]
         for triple in suggest_triples:
             s = [subject for subject in mocked_solution['subjects'] if subject['iri'] == str(triple[0])]
             if len(s) == 0:
@@ -134,7 +139,6 @@ class QueryBuilder:
             obj = {'iri': str(triple[2]), 'label': graph_utility.uri_or_literal_2label(self.kg, triple[2]),
                    'type': type_o}
             p['objects'].append(obj)
-        #mocked_solution = sorted(mocked_solution['subjects'], key=lambda x: x['label'].lower())
         return mocked_solution
 
     def get_partial_viz_graph(self):
@@ -177,9 +181,3 @@ class QueryBuilder:
 
 def get_query_builder(kg_instance):
     return QueryBuilder(kg_instance)
-
-
-#qb = get_query_builder(kg_instance=graph.KnowledgeGraph('data/mixing.owl'))
-#qb.mock_suggestion2()
-#print(qb.get_partial_viz_graph())
-
