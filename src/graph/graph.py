@@ -1,27 +1,35 @@
+import random
+import xml.sax
+
 import rdflib
 from rdflib import OWL, RDFS, RDF
-from rdflib.term import BNode, URIRef, Literal
+from rdflib.term import BNode, URIRef
 
-from src.graph.graph_utility import recursive_pattern_matching, extract_property_value, uri_or_literal_2label, \
-    extract_cardinality_types
+import src.graph.coloring as coloring
+from src.graph.graph_utility import uri_or_literal_2label
 from src.graph.types import get_cardinality_name, get_collection_name, is_restriction, \
     is_cardinality, is_collection, get_restriction_name
-import src.graph.coloring as coloring
-
-import random
 
 
 class KnowledgeGraph:
     def __init__(self, knowledge_graph_file: str):
-        self.kg = rdflib.Graph().parse(knowledge_graph_file)
-        self.graph_to_visualize = {'nodes': [], 'edges': []}
-        self.dominant_namespace = ''
+        self.error = ""
+        try:
+            self.kg = rdflib.Graph().parse(knowledge_graph_file)
+            self.graph_to_visualize = {'nodes': [], 'edges': []}
+            self.dominant_namespace = ''
 
-        self._set_dominant_namespace()
-        self._add_thing_node()
-        self._add_class_hierarchy()
-        self._add_class_restrictions()
-        self._color_graph()
+            self._set_base_iri()
+            self._add_thing_node()
+            self._add_class_hierarchy()
+            self._add_class_restrictions()
+            self._color_graph()
+        except xml.sax.SAXParseException:
+            self.kg = None
+            self.error = "Could not load ontology"
+        except FileNotFoundError:
+            self.kg = None
+            self.error = "Could not find ontology"
 
     def _add_node(self, node_id: str, label: str = ""):
         if label == "":
@@ -118,49 +126,51 @@ class KnowledgeGraph:
                 self._list_recursion(parent_node=child_node, parent_id=child_id, edge_label='')
 
     def get_graph_to_visualize(self):
+        if self.kg is None:
+            return None
         return self.graph_to_visualize
+
+    def get_error_msg(self):
+        return self.error
 
     def get_rdflib_graph(self):
         return self.kg
 
     def _color_graph(self):
-        coloring.color_classes(self.graph_to_visualize)
-        coloring.color_parameters(self.graph_to_visualize)
-        coloring.color_edges(self.graph_to_visualize)
-        coloring.color_tasks_actions(self.kg, self.graph_to_visualize)
-        coloring.color_dispositions(self.kg, self.graph_to_visualize)
-        coloring.color_tools(self.kg, self.graph_to_visualize)
-        coloring.color_instances(self.graph_to_visualize)
-        coloring.color_motions(self.kg, self.graph_to_visualize)
+        base_iri = str(list(self.kg.subjects(RDF.type, OWL.Ontology))[0])
+        nodes = self.graph_to_visualize.get("nodes")
+        edges = self.graph_to_visualize.get("edges")
 
-    def _set_dominant_namespace(self):
-        iris = []
-        for s, p, o in self.kg.triples((None, RDFS.subClassOf, None)):
-            if isinstance(s, BNode) or isinstance(o, BNode):
-                continue
-            subject_iri, object_iri = str(s), str(o)
-            if '#' in subject_iri:
-                base_iri = subject_iri.split('#')[0] + '#'
-                iris.append(base_iri)
-            else:
-                last_slash_index = subject_iri.rfind('/')
-                base_iri = subject_iri[:last_slash_index] + '/'
-                iris.append(base_iri)
-            if '#' in object_iri:
-                base_iri = object_iri.split('#')[0] + '#'
-                iris.append(base_iri)
-            else:
-                last_slash_index = object_iri.rfind('/')
-                base_iri = object_iri[:last_slash_index] + '/'
-                iris.append(base_iri)
+        graph_colors = coloring.DefaultColors(self.kg).get_node_colors()
+        if base_iri == 'http://www.ease-crc.org/ont/mixing':
+            graph_colors = coloring.MixingColors(self.kg).get_node_colors()
 
-        count = {}
-        for iri in iris:
-            if iri in count:
-                count[iri] += 1
-            else:
-                count[iri] = 1
+        if base_iri == 'http://www.ease-crc.org/ont/food_cutting':
+            graph_colors = coloring.CuttingColors(self.kg).get_node_colors()
 
-        self.dominant_namespace = max(count, key=lambda key: count[key])
+        for node in nodes:
+            node_id = node.get('id')
+            color = graph_colors.get(node_id)
 
-#graph = KnowledgeGraph("data/food_cutting.owl")
+            if color is not None:
+                node.update({'color': {'background': color, "border": "black"}})
+
+            if node_id.startswith('Res'):
+                node.update({'color': {"background": "#FFD97D", "border": "black"}})
+
+        for edge in edges:
+            edge.update({'color': {'color': 'black'}})
+
+        # coloring.color_classes(self.graph_to_visualize)
+        # coloring.color_parameters(self.graph_to_visualize)
+        # coloring.color_edges(self.graph_to_visualize)
+        # coloring.color_tasks_actions(self.kg, self.graph_to_visualize)
+        # coloring.color_dispositions(self.kg, self.graph_to_visualize)
+        # coloring.color_tools(self.kg, self.graph_to_visualize)
+        # coloring.color_instances(self.graph_to_visualize)
+        # coloring.color_motions(self.kg, self.graph_to_visualize)
+
+    def _set_base_iri(self):
+        ontologies = list(self.kg.triples((None, RDF.type, OWL.Ontology)))
+        if len(ontologies) > 0:
+            self._base_iri = ontologies[0][0]
