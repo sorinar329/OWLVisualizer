@@ -15,6 +15,7 @@ cached_data = None
 cached_status = False
 data_path = "data"
 
+
 @app.route('/')
 def index():
     return render_template("homepage.html")
@@ -23,6 +24,7 @@ def index():
 @app.route("/owlviz")
 def owlviz():
     return render_template("index.html")
+
 
 @app.route('/get_graph_data_rdf')
 def get_graph_data_rdf():
@@ -33,10 +35,13 @@ def get_graph_data_rdf():
     file = file_paths[0]
     kg_instance = KnowledgeGraph(file)
     graph_visualize = kg_instance.get_graph_to_visualize()
-    qb = query_builder.get_query_builder(kg_instance)
-    print(f"Num nodes: {len(graph_visualize.get('nodes'))}")
-    print(f"Num edges: {len(graph_visualize.get('edges'))}")
-    return jsonify({'nodes': graph_visualize.get("nodes"), 'edges': graph_visualize.get("edges")})
+    if graph_visualize is not None:
+        qb = query_builder.get_query_builder(kg_instance)
+        print(f"Num nodes: {len(graph_visualize.get('nodes'))}")
+        print(f"Num edges: {len(graph_visualize.get('edges'))}")
+        return jsonify({'nodes': graph_visualize.get("nodes"), 'edges': graph_visualize.get("edges")})
+    else:
+        return jsonify({'error': kg_instance.error})
 
 
 @app.route('/query_builder', methods=["GET", "POST"])
@@ -112,6 +117,7 @@ def get_data():
 
 @app.route('/query_builder_clear', methods=['POST'])
 def clear_triples():
+    global qb
     if isinstance(qb, QueryBuilder):
         qb.clear_triples()
         return jsonify({'message': 'Cleared triples'}), 200
@@ -131,6 +137,7 @@ def send_sparql_query():
         triples = qb.get_latest_triples()
         sparql_query = sparql_gen.generate_sparql_query(triples)
         return jsonify(sparql_query)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
