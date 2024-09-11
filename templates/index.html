@@ -52,19 +52,6 @@
                                 class="bi bi-search"></i>
                         </button>
                     </div>
-                    <div class="dropdown">
-                        <button type="button" class="btn btn-outline-light dropdown-toggle" id="menuButton"
-                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="bi bi-justify"></i>
-                        </button>
-                        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="menuButton">
-                            <a class="dropdown-item"
-                               href="https://github.com/Food-Ninja/MixingIngredients/blob/main/src/mixing.owl"
-                               target="_blank">
-                                Mixing Ontology
-                            </a>
-                        </div>
-                    </div>
                 </div>
             </form>
         </div>
@@ -232,22 +219,12 @@
         });
 
         $('#exampleModalCenter').on('shown.bs.modal', function () {
-            const modalBody = document.getElementById("query-builder-body");
             const button = document.getElementById("query-builder-add");
             const row = document.getElementById("query-builder-select-row");
             row.addEventListener("change", function () {
                 showSelectFields(this);
             });
-            button.addEventListener("click", function () {
-                let groupName = getTripleType(modalBody, row);
-                let navItem = document.getElementById(groupName + "-navItem");
-                if (navItem === null) {
-                    createGraphDropDown(groupName);
-                    createTabPane(groupName);
-                }
-                createGraphVizTabContent(row, groupName);
-                createSPARQLTabContent(groupName);
-            });
+            button.addEventListener("click", createVisAndSPARQL);
             $(document).on('click', '.dropdown-item', function () {
                 const id = $(this).attr('id');
                 let content = document.querySelector(`[aria-labelledby="${id}"]`);
