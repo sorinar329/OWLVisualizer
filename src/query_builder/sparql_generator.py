@@ -1,6 +1,5 @@
 import rdflib
 from rdflib import OWL, RDF, RDFS, URIRef
-from src.graph import types
 from src.graph.graph_utility import recursive_pattern_matching
 
 PREFIX_MAP = {
@@ -11,19 +10,6 @@ PREFIX_MAP = {
     'http://www.ease-crc.org/ont/mixing#': 'mixing',
     'http://www.ease-crc.org/ont/food_cutting#': 'cutting'
 }
-
-triples = [['http://www.ease-crc.org/ont/SOMA.owl#Dicing', 'subClassOf', 'Res-60539982743#AND-50310'],
-           ['Res-60539982743#AND-50310', 'hasInputObject some',
-            'Res-950690259655#http://www.ease-crc.org/ont/food_cutting#Stripe'],
-           [
-               'Res-60539982743#AND-50310', 'hasResultObject exactly 1',
-               'Res-319911140559#http://www.ease-crc.org/ont/food_cutting#Cube'],
-           ]
-
-triples2 = [['http://www.ease-crc.org/ont/SOMA.owl#Dicing', 'subClassOf',
-             'http://www.ease-crc.org/ont/food_cutting#CuttingAction'],
-            ['http://www.ease-crc.org/ont/food_cutting#CuttingAction', 'subClassOf',
-             'http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#Task']]
 
 
 class SparqlGenerator:
@@ -73,7 +59,6 @@ class SparqlGenerator:
             for s, p, o in triples:
                 for triple in self.knowledge_graph.triples((URIRef(s), None, URIRef(o))):
                     matched_triples.append(triple)
-
         for triple in matched_triples:
             self.add_triple(triple)
 
@@ -133,12 +118,6 @@ class SparqlGenerator:
             if '_' in prefix:
                 prefix = prefix.split('_')[-1]
             PREFIX_MAP.update({base_iri: prefix})
-            print(base_iri, prefix)
 
         self.sparql_prefixes.add(f'{prefix}: <{base_iri}>')
         return prefix
-
-# knowledge_graph = rdflib.Graph().parse("../data/food_cutting.owl")
-# gen = SparqlGenerator(knowledge_graph)
-# query = gen.generate_sparql_query(triples2)
-# print(query)
