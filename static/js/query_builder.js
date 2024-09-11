@@ -187,6 +187,8 @@ function sendSelectedValues() {
 }
 
 function clearSelectedOptions() {
+    const button = document.getElementById("query-builder-add");
+    button.removeEventListener("click", createVisAndSPARQL);
     const navTab = document.getElementById("query-builder-nav-tab");
     const tabContent = document.getElementById("query-builder-tab-content");
     navTab.innerHTML = '';
@@ -363,17 +365,22 @@ function createSPARQLTabContent(groupName) {
     fetch('/sparql_query_generator')
         .then(response => response.json())
         .then(data => {
-            const textArea = document.createElement("textarea");
-            textArea.id = groupName + "-sparql-textarea";
-            textArea.className = "form-control";
-            textArea.setAttribute("rows", "10");
-            textArea.setAttribute("cols", "120");
-            textArea.classList.add("sparql-textarea");
-            textArea.setAttribute("aria-labelledby", groupName + "-sparql");
-            textArea.style.display = "None";
-            textArea.textContent = data
-            const tab = document.getElementById(groupName + "-tab");
-            tab.appendChild(textArea);
+            let textArea = document.getElementById(groupName + "-sparql-textarea")
+            if (textArea !== null) {
+                textArea.textContent = data;
+            } else {
+                textArea = document.createElement("textarea");
+                textArea.id = groupName + "-sparql-textarea";
+                textArea.className = "form-control";
+                textArea.setAttribute("rows", "10");
+                textArea.setAttribute("cols", "120");
+                textArea.classList.add("sparql-textarea");
+                textArea.setAttribute("aria-labelledby", groupName + "-sparql");
+                textArea.style.display = "None";
+                textArea.textContent = data
+                const tab = document.getElementById(groupName + "-tab");
+                tab.appendChild(textArea);
+            }
         }).catch(error => console.error('Error fetching data:', error));
 }
 
@@ -392,4 +399,18 @@ function getTripleType(modalBody, row) {
         restrictionIdx++;
         return tripleType;
     }
+}
+
+function createVisAndSPARQL() {
+    const modalBody = document.getElementById("query-builder-body");
+    const row = document.getElementById("query-builder-select-row");
+
+    let groupName = getTripleType(modalBody, row);
+    let navItem = document.getElementById(groupName + "-navItem");
+    if (navItem === null) {
+        createGraphDropDown(groupName);
+        createTabPane(groupName);
+    }
+    createGraphVizTabContent(row, groupName);
+    createSPARQLTabContent(groupName);
 }
